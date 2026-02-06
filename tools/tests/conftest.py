@@ -21,7 +21,7 @@ DEFAULT_ROOT_INTENT = REPO_ROOT / "criteria" / "intent-driven-framework-definiti
 DEFAULT_SCHEMA_JS = REPO_ROOT / "tools" / "schema.js"
 DEFAULT_LEAN_FILE = REPO_ROOT / "lean" / "IntentDrivenFramework.lean"
 DEFAULT_SDLC_AI_INTENT = REPO_ROOT / "_domains" / "sdlc-ai" / "intent-sdlc-ai.yml"
-DEFAULT_CRITERIA_INTENT = REPO_ROOT / "criteria" / "intent-manifesto-v1.6.1.yml"
+DEFAULT_CRITERIA_INTENT = REPO_ROOT / "criteria" / "intent-idf-sdlc-v1.7.0.yml"
 
 
 # ── CLI OPTIONS ──────────────────────────────────────────────────
@@ -202,6 +202,7 @@ def pytest_configure(config):
         "domain: domain instantiation tests",
         "hypothesis: domain-invariance hypothesis tests",
         "bridge: criteria-to-root bridge tests",
+        "criteria_self: criteria intent self-conformance tests",
     ]:
         config.addinivalue_line("markers", marker)
 

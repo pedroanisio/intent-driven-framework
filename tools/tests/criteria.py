@@ -1,7 +1,7 @@
 """
 Criteria Registry — the 28 completeness criteria as Python dataclasses.
 
-Since the criteria YAML (intent-manifesto-v1.6.1.yml) was deleted from
+Since the criteria YAML (intent-idf-sdlc-v1.7.0.yml) was restored to
 disk, this registry is bootstrapped in Python. It mirrors the 28 CC
 definitions exactly as they appeared in the criteria YAML.
 

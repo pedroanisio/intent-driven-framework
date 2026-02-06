@@ -17,5 +17,6 @@ markers = [
     "domain: domain instantiation tests",
     "hypothesis: domain-invariance hypothesis tests",
     "bridge: criteria-to-root bridge tests",
+    "criteria_self: criteria intent self-conformance tests",
 ]
 addopts = "-v --tb=short"
