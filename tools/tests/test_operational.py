@@ -2,10 +2,10 @@
 OPERATIONAL — the model is ready for real-world use.
 
 CC-19: declares quality guidance (GREEN)
-CC-20: tooling surface (RED — not described in YAML)
+CC-20: tooling surface (GREEN — evidence found via deep text scan)
 CC-21: adoption ramp (RED — no ramp in YAML)
 CC-23: tension staleness (GREEN — all tensions have thresholds)
-CC-25: deprecation ceremonies (RED — not defined in YAML)
+CC-25: deprecation ceremonies (GREEN — evidence found in YAML)
 CC-26: failure modes (GREEN — 6 modes: FM-01 through FM-06)
 """
 
@@ -28,10 +28,6 @@ class TestOperational:
 
     @pytest.mark.core
     @pytest.mark.operational
-    @pytest.mark.xfail(
-        reason="RED: tooling surface contracts not described in root intent YAML",
-        strict=False,
-    )
     def test_cc20_tooling_surface(self, root_intent, schema_js_text):
         """CC-20: The spec defines a tooling surface."""
         ev = check_cc20(root_intent, schema_js_text)
@@ -57,10 +53,6 @@ class TestOperational:
 
     @pytest.mark.core
     @pytest.mark.operational
-    @pytest.mark.xfail(
-        reason="RED: deprecation ceremonies not defined in root intent YAML",
-        strict=False,
-    )
     def test_cc25_deprecation_ceremonies(self, root_intent):
         """CC-25: Deprecation ceremonies for superseded/residual intents defined."""
         ev = check_cc25(root_intent)

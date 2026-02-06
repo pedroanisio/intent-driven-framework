@@ -100,24 +100,26 @@ def parse_zod_enum_from_js(js_text: str, enum_name: str) -> list[str] | None:
 def parse_lean_inductive(lean_text: str, type_name: str) -> list[str] | None:
     """Extract constructor names from a Lean 4 inductive type.
 
-    Handles the pattern:
+    Handles both multi-line and single-line formats:
         inductive TypeName where
-          | constructor1 : TypeName
-          | constructor2 : TypeName
+          | constructor1 | constructor2 | constructor3
           deriving ...
     """
-    pattern = rf"inductive\s+{re.escape(type_name)}\s+where\s*\n(.*?)(?:deriving|section|namespace|inductive|def |theorem )"
+    pattern = rf"inductive\s+{re.escape(type_name)}\s+where\s*\n(.*?)deriving"
     m = re.search(pattern, lean_text, re.DOTALL)
     if not m:
         return None
     raw = m.group(1)
     constructors = []
-    for line in raw.split("\n"):
-        line = line.strip()
-        if line.startswith("--"):
+    # Split on | and extract constructor names
+    for part in re.split(r"\|", raw):
+        part = part.strip()
+        if not part or part.startswith("--"):
             continue
-        # Match "| constructorName" or "| constructorName : Type"
-        pipe_match = re.match(r"\|\s+(\w+)", line)
-        if pipe_match:
-            constructors.append(pipe_match.group(1))
+        # First word is the constructor name; skip type annotations
+        token = part.split()[0].split(":")[0].strip()
+        # Strip Lean 4 guillemet escaping: «none» → none
+        clean = token.strip("«»")
+        if clean and clean.isidentifier() and not clean.startswith("--"):
+            constructors.append(clean)
     return constructors if constructors else None

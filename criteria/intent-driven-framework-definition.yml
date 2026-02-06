@@ -23,7 +23,7 @@ intent:
   # to provide it is detectable.
   # ─────────────────────────────────────────────────────────────────
 
-declares: >
+  declares: >
     This manifesto intends to be a self-contained declaration of
     the Intent Driven Framework — a purpose governance model that
     treats intent as a first-class entity: structured, versioned,

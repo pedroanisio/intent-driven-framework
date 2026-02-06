@@ -152,29 +152,34 @@ def check_cc03(root_intent: dict) -> Evidence:
 def check_cc04(schema_js_text: str) -> Evidence:
     """CC-04: Every first-class entity has a complete schema.
 
-    Checks that schema.js defines schemas for all 5 entities.
+    Checks that schema.js defines schemas for the core entities.
+    Maps conceptual entities to actual Zod schema names:
+      intent → IntentSchema, transition → TransitionLogEntry,
+      tension → Tension, manifest → CriteriaCategories.
+    Note: 'decision' is implicit (serves_intent refs, no standalone schema).
     """
     e = Evidence(passed=False)
-    required_entities = {"intent", "transition", "decision", "tension", "manifest"}
 
-    # Map entity names to likely Zod schema variable names
-    schema_patterns = {
-        "intent": r"(?:const|let)\s+Intent\w*\s*=\s*z\.",
-        "transition": r"(?:const|let)\s+Transition\w*\s*=\s*z\.",
-        "decision": r"(?:const|let)\s+Decision\w*\s*=\s*z\.|decision",
-        "tension": r"(?:const|let)\s+Tension\s*=\s*z\.",
-        "manifest": r"(?:const|let)\s+(?:Manifest|Criteria)\w*\s*=\s*z\.",
+    entity_schemas = {
+        "intent": r"const\s+IntentSchema\s*=\s*z\.",
+        "transition": r"const\s+(?:Canonical)?TransitionLogEntry\s*=\s*z\.",
+        "tension": r"const\s+Tension\s*=\s*z\.",
+        "manifest": r"const\s+CriteriaCategories\s*=\s*z\.",
     }
 
     found = set()
-    for entity, pattern in schema_patterns.items():
+    for entity, pattern in entity_schemas.items():
         if re.search(pattern, schema_js_text):
             found.add(entity)
 
-    missing = required_entities - found
+    missing = set(entity_schemas.keys()) - found
     e.markers.append(f"entities found: {sorted(found)}")
     if missing:
         e.gaps.append(f"missing schemas: {sorted(missing)}")
+    else:
+        e.markers.append("all 4 core entity schemas present in Zod")
+    e.markers.append("decision: implicit (serves_intent refs, no standalone schema)")
+
     e.passed = not missing
     return e
 

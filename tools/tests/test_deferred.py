@@ -1,7 +1,7 @@
 """
 DEFERRED — tracked, not blocking v1.
 
-CC-22: Cross-repo discovery protocol
+CC-22: Cross-repo discovery protocol (GREEN — evidence found in YAML)
 CC-24: Schema evolution semantics
 """
 
@@ -14,7 +14,6 @@ class TestDeferred:
 
     @pytest.mark.deferred
     @pytest.mark.operational
-    @pytest.mark.xfail(reason="CC-22 deferred: cross-repo discovery not needed for v1")
     def test_cc22_cross_repo_discovery(self, root_intent):
         """CC-22: Cross-repo intent dependencies have a discovery protocol."""
         ev = check_cc22(root_intent)
