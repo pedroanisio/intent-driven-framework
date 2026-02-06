@@ -1,723 +1,1025 @@
-intent:
-  id: intent-driven-framework
-  version: 0.0.1
-  schema_version: 0.1.0
+# ═══════════════════════════════════════════════════════════════════
+# Intent Driven Framework — Root Intent Declaration
+# ═══════════════════════════════════════════════════════════════════
+#
+# This file is the framework declaring itself. Every structural
+# requirement the framework imposes on its adopters, this file
+# must satisfy first. If it doesn't, the model is performative.
+#
+# ═══════════════════════════════════════════════════════════════════
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # DECLARATION: What the Intent Driven Framework IS
-  # ═══════════════════════════════════════════════════════════════════════════
+intent:
+  id: intent-driven-framework-definition
+  version: 1.3.0
+  schema_version: 0.4.0
+
+  # ─────────────────────────────────────────────────────────────────
+  # DECLARES
+  # ─────────────────────────────────────────────────────────────────
+  # The declares field is the framework's falsifiable commitment.
+  # It is not a mission statement. It is not an aspiration phrased
+  # as poetry. It is a testable claim about what this framework
+  # provides, to whom, under what conditions, such that failure
+  # to provide it is detectable.
+  # ─────────────────────────────────────────────────────────────────
 
   declares: >
-    The Intent Driven Framework provides a general model for making purpose
-    explicit, versioned, and verifiable in any system where decisions are made
-    in service of goals that degrade, drift, or become invisible as people and
-    context change. Intent is a first-class entity: structured, addressable,
-    versioned, and versionable. The framework applies to software codebases,
-    product strategy, regulatory compliance, organizational governance, AI agent
-    boundaries, and any other domain carrying purpose and undergoing evolution.
+    The Intent Driven Framework is a purpose governance model. It
+    treats intent as a first-class entity — structured, versioned,
+    and verifiable — across any domain where decisions serve goals
+    that degrade, drift, or become invisible over time. The domain
+    is a parameter: software, policy, strategy, regulation, or the
+    framework's own specification documents. The mechanics of
+    declaring, versioning, tracking, and tension-checking purpose
+    are invariant across these domains. What changes is the scope
+    syntax, the artifact types, and the verification methods. The
+    core does not.
+
+  # Concrete deliverables that satisfy the declares commitment.
+  # Each item maps to one or more falsifiable claims (FC-*) that
+  # define what it would mean for the deliverable to fail.
+  provides:
+    - id: provides-a
+      description: "A data model sufficient to declare, version, and relate intents"
+      tested_by: [FC-01]
+    - id: provides-b
+      description: "A lifecycle model for intent evolution with semantic versioning"
+      tested_by: [FC-06]
+    - id: provides-c
+      description: >
+        A structural relationship between intent, decisions, and artifacts
+        that is mechanically traversable, not merely documented
+      tested_by: [FC-02]
+    - id: provides-d
+      description: >
+        A tension model that makes conflicts between intents explicit,
+        owned, and resolvable before they surface as failures
+      tested_by: []    # tested by CC criteria (CC-08a/b/c), not a standalone FC
+    - id: provides-e
+      description: >
+        Adoption pathways that do not require comprehensive audit of
+        existing systems — aspirational intent can be declared without
+        understanding the current state
+      tested_by: [FC-03, FC-05]
+    - id: provides-f
+      description: >
+        An operational cycle — Red / Green / Refactor — that governs
+        how intent is declared, satisfied, and evolved. No decision is
+        justified without a red intent demanding it. No intent is
+        evolved without the prior state being green. The cycle is the
+        framework's discipline, not a metaphor.
+      tested_by: [FC-07]
+
+  design_stance: >
+    Domain-specific adaptation is achieved through instantiation
+    (domain-specific forks with native scope syntax and verification
+    methods), not generalization (abstracting the core until it commits
+    to nothing). Neither domain of origin is privileged. All are
+    instantiations of the same model.
+
+  # ─────────────────────────────────────────────────────────────────
+  # CLASSIFICATION
+  # ─────────────────────────────────────────────────────────────────
 
   intent_type: aspirational
   status: proposed
-  confidence: medium
-  achieved_coverage: none
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 1: CORE PRINCIPLES (CC-03: Principles with rationale)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  core_principles:
-    - principle: "Intent is primary"
-      rationale: >
-        Intent is not derived from artifacts, decisions, or past history.
-        It has its own existence, authority, and lifecycle. Decisions serve
-        intent. Artifacts implement decisions. Intent governs both.
-
-    - principle: "Intent evolves and its evolution is tracked"
-      rationale: >
-        Intent is not static. As organizations learn, domains change, and scale
-        introduces new forces, intent must shift. This evolution is captured
-        not just as the current state but as a transition log: what changed,
-        why, what forced it, what residue the former intent left behind.
-
-    - principle: "Intent has two modes: achieved and aspirational"
-      rationale: >
-        Not all intent describes current state. Some describes what should
-        become. This distinction is liberating: you can declare aspirational
-        intent before understanding the existing system. The gap between
-        achieved and aspirational is the work to be done.
-
-    - principle: "Intent follows Semantic Versioning"
-      rationale: >
-        Intent changes are not equal. PATCH means the intent is the same,
-        expressed more clearly. MINOR means the intent has extended in a
-        backward-compatible way. MAJOR means fundamental reorientation.
-        Version numbers communicate the nature of change.
-
-    - principle: "Intent carries tensions and resolution strategies"
-      rationale: >
-        Organizational tensions (growth vs. stability, performance vs.
-        correctness) are real constraints. Making them explicit and assigning
-        resolution owners prevents re-litigation and preserves decisions.
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 2: ENTITY SCHEMAS (CC-04: Entity schemas complete)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  entity_schemas:
-    intent:
-      description: "A declaration of what a system intends to be or maintain."
-      required_fields:
-        - id (string, stable, never changes)
-        - version (semantic version: MAJOR.MINOR.PATCH)
-        - declares (string, precise natural language statement)
-        - scope (list of domain-specific references)
-      optional_fields:
-        - priority (critical | high | medium | low)
-        - status (lifecycle state)
-        - intent_type (achieved | aspirational)
-        - current_reality (for aspirational intents: assessed gap)
-        - achieved_coverage (none | minimal | partial | substantial | full)
-        - tensions (intents this is in active tension with)
-        - serves (parent intents this supports)
-        - supersedes (intents this replaced)
-        - origin (provenance: type, ref, relationship)
-        - owner (who is accountable)
-        - confidence (high | medium | low)
-        - needs_verification (boolean)
-        - created (datetime)
-        - last_affirmed (datetime)
-        - ext (domain-specific extensions)
-
-    transition:
-      description: "A record of how an intent changed from one version to another."
-      required_fields:
-        - intent_id (which intent changed)
-        - from_version (semver)
-        - to_version (semver)
-        - date (when it changed)
-        - author (who made the change)
-        - change_type (clarification | correction | extension | breaking | deprecation)
-        - reason (why it changed)
-        - forcing_function (what prompted it)
-      optional_fields:
-        - summary (brief change description)
-        - pre_transition_verification (what was checked before changing)
-        - breaking_changes (if MAJOR: what breaks)
-
-    tension:
-      description: "A declared conflict between two or more intents."
-      required_fields:
-        - ref (identifier for this tension)
-        - description (how they conflict)
-        - resolution_strategy (how the tradeoff is being made)
-        - resolution_owner (who decides when there's deadlock)
-      optional_fields:
-        - severity (critical | high | medium | low)
-        - status (active | mitigated | resolved)
-        - last_revisited (datetime)
-
-    decision:
-      description: "A choice made in service of one or more intents."
-      required_fields:
-        - id (identifier)
-        - date (when decided)
-        - intents_served (which intent(s) this implements)
-      optional_fields:
-        - rationale (why this decision)
-        - alternatives_considered (what else we thought about)
-        - tradeoffs (what we gave up)
-
-    repo:
-      description: "The self-model: where intent blocks for this system live."
-      required_fields:
-        - root_path (where to find intent declarations)
-        - format (yaml | json | other)
-        - discovery_pattern (how to find intent blocks)
-      optional_fields:
-        - version_control (git, etc.)
-        - CI_integration (how verification runs)
-        - ownership (who maintains the repo)
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 3: CLOSED ENUMS (CC-05: Every enum is closed and finite)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  enums:
-    status:
-      description: "The lifecycle state of an intent."
-      values:
-        - proposed      # declared but not yet active
-        - active        # current and enforced
-        - evolving      # active but undergoing intentional change
-        - superseded    # replaced by a successor intent
-        - residual      # no longer active; kept for reference
-        - retracted     # withdrawn before reaching active; terminal
-
-    intent_type:
-      description: "Whether an intent describes current state or desired future."
-      values:
-        - achieved       # what the system currently intends
-        - aspirational   # what we want the system to intend
-
-    priority:
-      description: "Relative importance of this intent."
-      values:
-        - critical  # failure is a system-level risk
-        - high      # significant impact; address in current cycle
-        - medium    # moderate impact; address when adjacent work touches scope
-        - low       # minor impact; address opportunistically
-
-    confidence:
-      description: "How well-understood is this intent."
-      values:
-        - high    # well-understood and stable
-        - medium  # directionally correct but may evolve
-        - low     # exploratory or uncertain
-
-    change_type:
-      description: "The nature of change from one version to the next."
-      values:
-        - clarification      # rewording with no semantic change
-        - correction         # fixing inconsistencies or errors
-        - extension          # additive new content; backward-compatible
-        - reclassification   # tier or category move without changing the intent
-        - breaking           # backward-incompatible change to existing intent
-        - deprecation        # marking an intent for removal
-
-    achieved_coverage:
-      description: "How much of an intent's commitments have been implemented."
-      values:
-        - none         # intent declared but no implementation exists
-        - minimal      # token implementation; intent barely addressed
-        - partial      # some commitments met; others outstanding
-        - substantial  # most commitments met; edge cases remain
-        - full         # all commitments met and verified
-
-    origin_type:
-      description: "Where this intent came from."
-      values:
-        - engineering       # from engineering practice or architecture
-        - product           # from product requirement
-        - incident          # from incident response or postmortem
-        - discovery         # from exploratory or research activity
-        - regulatory        # from compliance or regulatory requirement
-        - organizational    # from organizational policy or restructuring
-        - devops            # from infrastructure or deployment practice
-        - ux                # from user experience research or design
-        - data              # from data architecture or analytics
-        - sre               # from site reliability or observability
-        - security          # from security audit or threat model
-
-    origin_relationship:
-      description: "How the intent relates to its origin source."
-      values:
-        - derived_from      # intent was derived from the referenced source
-        - motivated_by      # intent was motivated by but not directly derived
-        - constrained_by    # intent exists because of a constraint from source
-        - triggered_by      # intent was triggered by a specific event
-        - discovered_in     # intent was discovered during work on source
-
-    forcing_function:
-      description: "What external force prompted a transition."
-      values:
-        - incident          # incident or outage forced the change
-        - requirement       # new requirement from business/compliance
-        - scaling           # scale introduced new constraints
-        - organizational    # org change (team restructure, merger, etc.)
-        - research          # research or learning prompted the change
-        - other             # something else (describe in reason)
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 4: LIFECYCLE STATE MACHINE (CC-07: Lifecycle complete)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  lifecycle:
-    description: >
-      An intent follows a state machine with clearly defined transitions.
-      Terminal states are SUPERSEDED, RESIDUAL, and RETRACTED.
-
-    states:
-      - proposed    # Starting state for new intents
-      - active      # Governing intents currently enforced
-      - evolving    # Intents undergoing intentional change
-      - superseded  # Replaced by a successor intent (terminal)
-      - residual    # Legacy intents kept for reference (terminal)
-      - retracted   # Withdrawn as mistaken (terminal)
-
-    allowed_transitions:
-      proposed → active:
-        rationale: "Declared intent becomes current when adopted."
-      proposed → retracted:
-        rationale: "Declared intent withdrawn if found to be wrong before activation."
-      active → evolving:
-        rationale: "Current intent is under revision."
-      evolving → active:
-        rationale: "Revised intent becomes current."
-      active → superseded:
-        rationale: "Intent is replaced by a successor."
-      active → residual:
-        rationale: "Intent no longer maintained but effects remain."
-      active → retracted:
-        rationale: "Current intent found to be wrong; withdrawn."
-      evolving → superseded:
-        rationale: "Revised intent is replaced before completion."
-
-    invariants:
-      - "SUPERSEDED, RESIDUAL, RETRACTED are terminal; no outgoing transitions."
-      - "All states are reachable from PROPOSED (proof: see transition log)."
-      - "Terminal state indicates reason: superseded → successor intent; residual → legacy; retracted → mistake."
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 5: 28 COMPLETENESS CRITERIA (CC-01 through CC-27)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  completeness_criteria:
-    CC-01:
-      category: philosophy
-      description: "Manifesto states the problem it solves."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-02:
-      category: philosophy
-      description: "Manifesto states the inversion (today's model vs. intent model)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-03:
-      category: philosophy
-      description: "Core principles named, numbered, and explained with rationale."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-04:
-      category: model
-      description: "Every first-class entity (intent, transition, decision, tension, repo) has a complete schema."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-05:
-      category: model
-      description: "Every enum field has all valid values listed and closed."
-      verifiable_by: [pytest, lean, regex, zod]
-      tier: core
-
-    CC-06:
-      category: model
-      description: "Relationships are bidirectionally defined (e.g., serves/served_by)."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-07:
-      category: model
-      description: "Lifecycle is a valid state machine (no dead states, terminals terminal, all reachable)."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-08:
-      category: model
-      description: "Achieved and aspirational intents have distinct schemas."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-08a:
-      category: conflict
-      description: "Contradiction between intents maps to supersession strategy."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-08b:
-      category: conflict
-      description: "Pre-transition resolution checks for contradictions; MAJOR blocks on unresolved."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-08c:
-      category: conflict
-      description: "Scope overlap between intents is detectable and reported."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-09:
-      category: structure
-      description: "Repo structure fully specified (where intent blocks live, discovery pattern)."
-      verifiable_by: [pytest, regex]
-      tier: core
-
-    CC-10:
-      category: structure
-      description: "Reader can create _repo/ from documentation alone."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-11:
-      category: extensibility
-      description: "Plugin architecture with example (how ext: namespace works)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-12:
-      category: extensibility
-      description: "Extension surface semantics (namespaced, no-shadow, graceful ignore)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-13:
-      category: adoption
-      description: "Adoption sequence is ordered and actionable."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-14:
-      category: adoption
-      description: "Legacy intents can be tracked without comprehensive audit."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-15:
-      category: adoption
-      description: "≥3 practical entry points for adopting the framework."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-16:
-      category: self_sufficiency
-      description: "No external concepts required (framework is self-contained)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-17:
-      category: self_sufficiency
-      description: "Daily practice is stated concretely (declare, link, record, check)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-18:
-      category: self_conformance
-      description: "Framework's own intent block conforms to its own model (meta-validation)."
-      verifiable_by: [pytest, lean, zod]
-      tier: core
-
-    CC-19:
-      category: operational
-      description: "Declares falsifiable quality guidance (how to test intent compliance)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-20:
-      category: operational
-      description: "Tooling surface section (hooks, contracts, integration points)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-21:
-      category: operational
-      description: "Adoption ramp for next-touch rule (how new systems onboard)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-23:
-      category: operational
-      description: "Tension staleness contract (MAJOR invalidates; MINOR flags review)."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-25:
-      category: operational
-      description: "Deprecation ceremonies (dependents notified, migration path, grace period)."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-26:
-      category: operational
-      description: "Failure mode catalogue with remediation (triggers, detection, recovery)."
-      verifiable_by: [pytest, nlp, regex]
-      tier: core
-
-    CC-27:
-      category: self_conformance
-      description: "Transition log integrity (contiguous chain, summaries non-empty, change_types canonical)."
-      verifiable_by: [pytest, lean, regex]
-      tier: core
-
-    CC-22:
-      category: deferred
-      description: "Cross-repo discovery protocol (how repos find each other's intents)."
-      verifiable_by: [pytest, regex]
-      tier: deferred
-      promote_when: "Multiple domains with shared intent scopes"
-
-    CC-24:
-      category: deferred
-      description: "Schema evolution semantics (migration rules per schema_version bump)."
-      verifiable_by: [pytest, regex]
-      tier: deferred
-      promote_when: "Schema changes become common across domains"
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 6: VERIFICATION ARCHITECTURE (CC-20: Tooling surface)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  verification:
-    description: >
-      Four-layer stack: each layer provides mechanical verification that an
-      intent block satisfies its declared completeness criteria. Not every
-      domain uses all four; every domain uses at least one.
-
-    layer_1:
-      name: "Zod Schema Validator"
-      tool: "validate.js (JavaScript/Node)"
-      purpose: "Structural validation"
-      checks:
-        - "YAML/JSON shape matches schema"
-        - "Required fields present"
-        - "Enums closed (no invalid values)"
-        - "Relationships are bidirectional"
-      covers_criteria: [CC-04, CC-05, CC-06, CC-27]
-      strength: "Mechanical; guaranteed deterministic"
-      applicable_to: "All domains"
-
-    layer_2:
-      name: "Pytest Suite"
-      tool: "tests/ (Python/pytest)"
-      purpose: "TDD prose validation"
-      checks:
-        - "Criteria→evidence→verdict workflow"
-        - "Prose sections match expected structure"
-        - "Concrete examples present"
-        - "Completeness claims supported by evidence"
-      covers_criteria: [CC-01 through CC-27]
-      strength: "Standard test runner; CI-native; portable"
-      weakness: "Requires prose to be written; test-first discipline"
-      applicable_to: "All domains (though some may adapt heavily)"
-
-    layer_3:
-      name: "NLP Semantic Validator"
-      tool: "nlp_validator.py (Python + Claude API)"
-      purpose: "Semantic entailment and falsifiability"
-      checks:
-        - "Entailment (does passage X entail claim Y?)"
-        - "Falsifiability (can this be tested?)"
-        - "Sufficiency (does explanation cover the criterion?)"
-      covers_criteria: [CC-01, CC-02, CC-03, CC-09, CC-13, CC-15, CC-17, "... 16 total"]
-      strength: "Reads prose like a human; structured verdicts"
-      weakness: "Requires API key; probabilistic; can be expensive"
-      applicable_to: "Domains with written prose; not required for pure YAML/code"
-
-    layer_4:
-      name: "Lean 4 Formal Proofs"
-      tool: "IntentFramework.lean (Lean 4)"
-      purpose: "Algebraic and structural proof"
-      checks:
-        - "Enum closure (exhaustive pattern matching)"
-        - "Lifecycle validity (no dead states, reachability)"
-        - "Relationship inverses"
-        - "State machine properties"
-      covers_criteria: [CC-04, CC-05, CC-06, CC-07, CC-08, CC-08b, CC-18, CC-23, CC-25, CC-27]
-      strength: "Kernel-checked; highest mathematical guarantee"
-      weakness: "Requires Lean expertise; slow to develop; overkill for some domains"
-      applicable_to: "Software (proven); theoretical option for other domains"
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 7: DOMAIN INSTANTIATION PATTERN (CC-12: Extension surface semantics)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  domain_instantiation:
-    description: >
-      The Intent Framework is general. Any domain can instantiate it by
-      specializing three concepts: scope semantics, applicable verification
-      layers, and domain-specific extensions.
-
-    pattern:
-      step_1: "Copy _template/ to _domains/NEW_DOMAIN/"
-      step_2: "Define scope semantics (what scope means in your domain)"
-      step_3: "Choose verification layers (which of 4 apply)"
-      step_4: "Create domain spec (prose/intent-spec-NEW_DOMAIN.md)"
-      step_5: "Create bootstrap YAML (criteria/intent-NEW_DOMAIN-v0.1.0.yml)"
-      step_6: "Add 2-3 example intents (examples/*.yml)"
-      step_7: "Run general tools (validate, pytest, nlp_validator)"
-      step_8: "Document results (README.md)"
-
-    domains:
-      software:
-        version: 1.6.1
-        status: mature
-        scope_semantics: "glob patterns, line numbers, module paths"
-        applicable_layers: [1, 2, 3, 4]
-        proof_status: "Bootstrap complete (9 transitions, kernel-checked)"
-
-      regulatory:
-        version: 0.0.0
-        status: proposed
-        scope_semantics: "clause references, section numbers, regulation codes"
-        applicable_layers: [1, 2, 3, 4]
-        fit: high
-        candidates: "WCAG, GDPR, SOC 2, PCI-DSS"
-
-      product:
-        version: 0.0.0
-        status: proposed
-        scope_semantics: "user journeys, feature areas, product areas"
-        applicable_layers: [1, 2, 4]
-        fit: high
-        candidates: "OKRs, north stars, product metrics"
-
-      ai_agent:
-        version: 0.0.0
-        status: proposed
-        scope_semantics: "agent capabilities, decision boundaries, scopes"
-        applicable_layers: [1, 2, 4]
-        fit: medium
-        critical_unknown: "Can LLM reliably evaluate intent falsifiability?"
-
-      governance:
-        version: 0.0.0
-        status: proposed
-        scope_semantics: "departments, functions, organizational units"
-        applicable_layers: [1, 2]
-        fit: medium
-        critical_unknown: "Is explicit tension declaration politically viable?"
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 8: CURRENT REALITY AND REMAINING WORK (CC-08a: gap tracking)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  current_reality:
-    state: >
-      The Intent Framework has been validated against exactly one target:
-      itself. The bootstrap (v1.0.0 → v1.6.1) demonstrates that the core
-      mechanic (declare → version → verify → evolve) works on non-code
-      targets with the same mechanics as code. Nine versioned transitions
-      are kernel-checked by Lean 4. The framework has been restructured
-      to treat software as one domain among many.
-
-    status: >
-      Bootstrap proof: COMPLETE.
-      Domain transfer: UNTESTED.
-      Software domain: v1.6.1 (8/28 criteria incomplete or failing).
-      Candidate domains: 5 identified, 0 pilots started.
-      Verification stack: Partially operational (Zod broken, tests SKIPPED).
-
-    gaps:
-      - "Software domain self-conformance incomplete (CC-18 failures)"
-      - "8 software criteria without complete prose (CC-09, CC-10, etc.)"
-      - "Test suite broken (spec file path mismatch)"
-      - "Verification layers cannot be fully validated (environment issues)"
-      - "Domain transfer thesis unproven (requires 1+ non-software domain to v1.0.0)"
-
-    remaining_work: >
-      1. Complete software domain (CC-09, CC-10, CC-18, CC-19, CC-20, CC-26)
-      2. Verify verification stack is functional
-      3. Instantiate and pilot first candidate domain (recommend: regulatory)
-      4. Validate that general tools work on non-software intents
-      5. Document domain-transfer evidence: what transferred, what broke
-
-    last_assessed: "2026-02-06"
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 9: TENSIONS (CC-23: staleness contract)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  tensions:
-    - ref: depth_vs_breadth
-      description: >
-        The manifesto's credibility depends on specificity (concrete examples,
-        real schemas, CI integration, software-focus). Broadening to all
-        domains risks diluting into generic "governance framework" that
-        applies to everything and commits to nothing.
-
-      resolution_strategy: >
-        Keep the manifesto software-specific. Express domain-agnosticism as
-        this separate intent block with adaptation notes per domain. Let
-        each candidate domain produce its own manifesto fork. Breadth grows
-        through instantiation, not abstraction.
-
-      resolution_owner: "architects"
-
-    - ref: completeness_vs_scope_creep
-      description: >
-        Adding 28 criteria is powerful but risks overwhelming practitioners.
-        More criteria = more complete verification, but higher barrier to
-        adoption. Fewer criteria = easier adoption but less assurance.
-
-      resolution_strategy: >
-        Core 28 criteria are non-negotiable; deferred tier (CC-22, CC-24)
-        tracked but not blocking v1-completeness. Domains can add domain-
-        specific criteria without modifying core. Extension surface enables
-        specialization without overhead.
-
-      resolution_owner: "architects"
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 10: WHAT THE BOOTSTRAP PROVED vs UNPROVEN
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  proven_by_bootstrap:
-    - "Core mechanic (declare → version → check → evolve) works on non-code targets"
-    - "Achieved/aspirational distinction provides practical entry point for legacy systems"
-    - "Tension model surfaces real tradeoffs (completeness vs. scope creep proven this intent block)"
-    - "Transition log captures honest evolution history (9 transitions, kernel-checked)"
-    - "Mechanical verification is possible when declares is falsifiable"
-    - "Graduated verification works (not all criteria need all 4 layers)"
-    - "Criteria-first TDD workflow enforces rigor (declare criterion → write test → write prose)"
-    - "0.x.x confidence with needs_verification:true is a productive starting state"
-    - "Spec-to-formalization drift is detectable and fixable within the model (v1.6.1 fixed alignment)"
-
-  unproven:
-    - "Model works when verification is human-only (no tooling possible)"
-    - "Tension declaration is politically viable in non-engineering orgs"
-    - "Resolution_owner assignment works across organizational power structures"
-    - "Model adds value when target domain changes faster than version cycles"
-    - "Extension surface (plugins) is useful outside software toolchains"
-    - "achieved_coverage enum (none→full) maps meaningfully to non-code domains"
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PART 11: EVOLUTION LOG (CC-27: Transition log integrity)
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  transition_log:
-    - from: 0.0.0
-      to: 0.0.1
-      change_type: extension
-      date: "2026-02-06"
-      author: "architects"
-      reason: >
-        Official release: "Intent Driven Framework" v0.0.1. This is the first
-        public version. Previous work (v1.0.0 through v1.6.1 under "Intent
-        Framework") was bootstrap proof-of-concept. Starting fresh with v0.0.1
-        reflects: (1) true pre-alpha status, (2) commitment to domain-agnosticism
-        over software specificity, (3) fresh start with unified architecture
-        (software as one domain among many), (4) self-defining framework using
-        its own intent block as specification.
-
-      forcing_function: research
-      summary: >
-        Bootstrap complete. Self-definition complete. Software v1.6.1 integrated
-        as _domains/software/. 5 candidate domains identified. Domain instantiation
-        template ready. Master intent block (this file) is single source of truth.
-        Release as Intent Driven Framework v0.0.1 - initial public release.
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # METADATA
-  # ═══════════════════════════════════════════════════════════════════════════
-
   priority: critical
-  owner: "architects"
+  confidence: medium                # see confidence_rationale below
   needs_verification: true
-  created: "2026-02-06"
+  achieved_coverage: minimal       # self-application is a real non-software proof — not none
+
+  confidence_rationale: >
+    Medium reflects the absence of external validation, not weakness
+    of internal evidence. The bootstrap proof (six transitions, 28
+    criteria, Lean proofs, Zod validation) is strong for mechanic
+    invariance. Confidence remains medium because no adopter outside
+    the authorship context has attempted the framework. Internal
+    rigor cannot substitute for external survivability.
+
+  # ─────────────────────────────────────────────────────────────────
+  # SCOPE
+  # ─────────────────────────────────────────────────────────────────
+  # Scope defines what this intent governs. Primary scope is what
+  # the intent directly applies to. Implicit scope is what must
+  # exist for the primary scope to be satisfied but is not the
+  # intent's direct subject.
+  # ─────────────────────────────────────────────────────────────────
+
+  scope:
+    primary:
+      - "intent-driven-framework-definition.yml"   # this file
+      - "prose/intent-manifesto.md"                 # the philosophy
+      - "prose/intent-spec-core.md"                 # the universal data model
+    implicit:
+      - "schemas/"                                  # entity schemas (Zod, YAML)
+      - "criteria/"                                 # completeness criteria
+      - "core_principles.yaml"                      # principle declarations
+
+  # ─────────────────────────────────────────────────────────────────
+  # OWNERSHIP
+  # ─────────────────────────────────────────────────────────────────
+
+  owner: authors
   last_affirmed: "2026-02-06"
+  created: "2025-02-06"
+
+  # ─────────────────────────────────────────────────────────────────
+  # PROVENANCE
+  # ─────────────────────────────────────────────────────────────────
 
   origin:
     type: engineering
-    ref: "self-referential-bootstrap"
-    relationship: discovered_in
+    ref: "conversation-2025-02-06"
+    relationship: derived_from
+    accessibility: author_only
+    note: >
+      The origin conversation is not publicly resolvable. For a
+      framework that requires mechanical traversability (FC-02),
+      this is an acknowledged gap at the root level. A publishable
+      origin digest summarizing the key design decisions and forcing
+      functions is tracked as RW-07.
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # EXTENSION SURFACE: Domain-specific additions go here
-  # ═══════════════════════════════════════════════════════════════════════════
+  co_origins:
+    - type: engineering
+      ref: "adr-governance-failure-patterns"
+      relationship: motivated_by
+      note: >
+        The observation that ADRs accumulate without structural
+        relationship to purpose, becoming unreadable within months,
+        was the initial forcing function.
+
+    - type: engineering
+      ref: "legacy-system-adoption-barrier"
+      relationship: constrained_by
+      note: >
+        The requirement that the framework be adoptable without
+        comprehensive audit shaped the achieved/aspirational duality
+        and the "next touch" rule.
+
+    - type: engineering
+      ref: "self-referential-bootstrap-v1.5.0"
+      relationship: discovered_in
+      note: >
+        The framework's generality was discovered — not planned — when
+        the model was applied to its own prose documents and the
+        mechanics transferred without modification. This self-application
+        constitutes the framework's most rigorous proof of concept to
+        date: six versioned transitions, 28 completeness criteria, Lean
+        proofs, and Zod validation — all on a non-software target. The
+        bootstrap is not a recursive novelty. It is empirical evidence
+        that the core mechanics (declare, version, check, evolve) are
+        domain-invariant.
+
+    - type: engineering
+      ref: "tdd-isomorphism-discovery"
+      relationship: discovered_in
+      note: >
+        The structural parallel between TDD and intent-driven practice
+        was recognized during the 1.2.0 cycle: both enforce a
+        constraint-first discipline where the unsatisfied condition
+        (failing test / red intent) must exist before any work is
+        justified. The isomorphism is not a marketing analogy — it is
+        a structural claim that the Red/Green/Refactor cycle operates
+        at the purpose layer exactly as it operates at the behavior
+        layer. This discovery provides both an adoption bridge (teams
+        already practicing TDD recognize the discipline) and a
+        falsifiable structural commitment (see FC-07).
+
+  # ─────────────────────────────────────────────────────────────────
+  # RELATIONAL
+  # ─────────────────────────────────────────────────────────────────
+
+  serves: []              # this is the root — it serves no parent
+  supersedes: []          # this is the first declaration
+  dependencies: []        # self-contained by design
+
+  retirement_conditions: >
+    The root intent is retracted if:
+      (a) the core claim — that purpose can be made explicit, versioned,
+          and verifiable — is falsified across multiple domains (not
+          merely unadopted, but structurally refuted);
+      (b) a successor model subsumes the framework's commitments with
+          strictly fewer assumptions or strictly better adoptability;
+      (c) the authors abandon maintenance and no stewardship transfer
+          occurs within 12 months of last_affirmed.
+    Absence of adoption is not grounds for retraction. Structural
+    refutation is. The distinction matters: a correct model that
+    nobody uses is a distribution failure, not a model failure.
+
+  # ─────────────────────────────────────────────────────────────────
+  # OPERATIONAL CYCLE
+  # ─────────────────────────────────────────────────────────────────
+  # The discipline that governs how intent is declared, satisfied,
+  # and evolved. Adopted from TDD by structural isomorphism, not
+  # by analogy. The cycle is the framework's answer to "what do I
+  # do next?"
+  # ─────────────────────────────────────────────────────────────────
+
+  operational_cycle:
+    name: "Red / Green / Refactor"
+    tdd_isomorphism: claimed         # structural pending FC-07 validation
+
+    isomorphism_claim: >
+      The operational cycle is claimed to be isomorphic to Test-Driven
+      Development. TDD says: no production code without a failing test.
+      Intent Driven X says: no decision without an unsatisfied intent.
+      In both models, the constraint comes first, the work exists to
+      satisfy it, and restructuring happens only after satisfaction is
+      demonstrated. Both are instances of the same pattern: declare a
+      falsifiable constraint, satisfy it minimally, then improve without
+      breaking the constraint. This claim is structural, not analogical
+      — but it is unverified in practice. FC-07 defines the conditions
+      under which it would be falsified. Until FC-07 moves past
+      supported_in_theory, the isomorphism is a design commitment,
+      not a proven property.
+
+    phases:
+
+      - id: red
+        name: "Declare"
+        definition: >
+          Declare an intent that is currently unsatisfied. The intent's
+          current_reality shows a gap between what is declared and what
+          exists. The intent is "failing" — it has been stated but not
+          achieved. This is the only legitimate entry point for new work.
+        tdd_parallel: >
+          Write a failing test. The test defines the behavior before the
+          code exists. The red state is not a problem — it is the
+          authorization to build.
+        rule: >
+          No decision is justified without a red intent that demands it.
+          If there is no unsatisfied intent, there is no mandate to act.
+          Work without a red intent is drift.
+        outputs:
+          - "An intent declaration with intent_type: aspirational, status: proposed"
+          - "A current_reality block that honestly describes the gap"
+          - "Scope defined — what this intent governs"
+
+      - id: green
+        name: "Satisfy"
+        definition: >
+          Make decisions and produce artifacts that serve the declared
+          intent until the gap closes. achieved_coverage moves. The
+          intent transitions from proposed to active, or aspirational
+          narrows its gap. Every decision records which intent it serves.
+          Every artifact is traceable to a decision.
+        tdd_parallel: >
+          Write the minimum code to make the test pass. No more than
+          the test demands. The test constrains the implementation.
+        rule: >
+          Build only what the red intent demands. Decisions that do not
+          reference an intent are unjustified. Artifacts that do not
+          trace to a decision are orphans. The chain Intent → Decision →
+          Artifact must be traversable at every step.
+        outputs:
+          - "Decisions with explicit intent_ref"
+          - "Artifacts within the intent's declared scope"
+          - "Updated achieved_coverage and current_reality"
+
+      - id: refactor
+        name: "Evolve"
+        definition: >
+          Once an intent is satisfied (green), it can be evolved:
+          scope adjusted, tensions surfaced, version bumped. The
+          transition log captures what changed and why. Refactoring
+          happens from a position of satisfaction, not deficit. You
+          do not evolve a red intent — you satisfy it first, then
+          reshape it.
+        tdd_parallel: >
+          Refactor the code while keeping the tests green. The tests
+          protect the behavior. The refactoring improves the structure
+          without breaking what works.
+        rule: >
+          No evolution without a green state to protect. Version bumps
+          require a transition log entry. MAJOR bumps trigger artifact
+          review. The prior green state is the safety net — if the
+          evolution breaks satisfaction, the intent goes red again,
+          and the cycle restarts.
+        outputs:
+          - "A transition_log entry with reason, forcing_function, what_changed"
+          - "A version bump (MAJOR / MINOR / PATCH)"
+          - "Updated tensions if the evolution surfaces new conflicts"
+
+    constraints:
+      - id: OC-01
+        rule: "Red before Green — no work without a declared unsatisfied intent"
+        violation: "Drift: work exists that serves no declared purpose"
+      - id: OC-02
+        rule: "Green before Refactor — no evolution without demonstrated satisfaction"
+        violation: "Premature abstraction: reshaping what was never proven to work"
+      - id: OC-03
+        rule: "Every Green must be evidenced — achieved_coverage or current_reality must move"
+        violation: "Green-washing: claiming satisfaction without updating evidence"
+      - id: OC-04
+        rule: "Refactor produces a transition, not a new intent — the identity persists"
+        violation: "Intent sprawl: evolving by creating new intents instead of versioning existing ones"
+
+    divergence_from_tdd:
+      note: >
+        The isomorphism is structural but not total. The framework
+        operates at a higher altitude than TDD and must carry ambiguity
+        that tests do not:
+      differences:
+        - aspect: "Binary vs. graduated"
+          tdd: "Tests are pass/fail. There is no 'partially passing' test."
+          intent_driven: >
+            Intents can be partially satisfied. achieved_coverage can be
+            minimal, partial, or substantial before reaching full. The
+            Red/Green boundary is not binary — it is a threshold. An
+            intent is green when its gap_assessment and the team's
+            judgment agree that the declares field is operationally met.
+        - aspect: "Scope of constraint"
+          tdd: "A test constrains a function, a module, or an integration boundary."
+          intent_driven: >
+            An intent constrains a capability, a commitment, or a
+            governance boundary. The scope is broader, the feedback
+            loop is longer, and the verification may be human rather
+            than automated.
+        - aspect: "Speed of cycle"
+          tdd: "Red/Green/Refactor can complete in minutes."
+          intent_driven: >
+            Red/Green/Refactor for an intent may span weeks or months.
+            The discipline is the same. The clock speed is different.
+        - aspect: "Refactor safety net"
+          tdd: "The test suite protects against regression mechanically."
+          intent_driven: >
+            The transition log and falsifiable_claims protect against
+            regression structurally, but verification may require human
+            review rather than automated execution. The safety net is
+            real but not always automated.
+
+  # ─────────────────────────────────────────────────────────────────
+  # CURRENT REALITY
+  # ─────────────────────────────────────────────────────────────────
+  # Required for aspirational intents. This is the honest assessment
+  # of where things stand. The gap between current_reality and the
+  # declares field IS the strategy.
+  # ─────────────────────────────────────────────────────────────────
+
+  current_reality:
+    assessed: "2026-02-06"
+
+    state: >
+      The framework exists as prose (manifesto + spec), a YAML criteria
+      system (v1.6.1, 28 criteria, all passing), a Zod validation schema,
+      Lean 4 proofs for structural properties, and a regex-based evidence
+      scorer. The core principles have been expanded to seven with full
+      defensibility apparatus (counter-arguments, rebuttals, testability).
+
+      The model has been validated against exactly one non-trivial target:
+      itself. The self-referential bootstrap (applying the framework to
+      its own documents through six versioned transitions) demonstrated
+      that the core mechanics — declare, version, check, evolve — operate
+      on structured prose, not only on code. This is itself a non-software
+      application: the target was specification documents, criteria YAML,
+      and principles — not a codebase. Every field in this file functions
+      on that non-software target without modification. The framework's
+      own self-application is the strongest evidence that the domain is
+      a parameter, not a constraint.
+
+      What remains unproven: whether the model survives adoption by
+      someone who did not design it, on a system they did not build,
+      in an organization with real political constraints on tension
+      declaration. The self-application proves domain-invariance of
+      mechanics. It does not prove adoptability by strangers.
+
+    status: >
+      Bootstrap proof:       complete (self-referential, six transitions)
+      Core principles:       complete (7/7, all carry falsifiability)
+      Data model:            complete (intent, decision, transition, tension, origin, manifest)
+      Lifecycle model:       complete (proposed → active → evolving → superseded | residual | retracted)
+      SemVer for intent:     complete (MAJOR/MINOR/PATCH with governance consequences defined)
+      Adoption pathways:     complete (pain-first, next-touch, amnesty)
+      Operational cycle:     complete (Red/Green/Refactor defined, TDD isomorphism declared,
+                                      constraints and divergences documented)
+      Tension model:         complete (declared, owned, resolution strategies typed)
+      Declares decomposition: complete (core commitment separated from provides list,
+                                       each provides item cross-referenced to falsifiable claims,
+                                       design stance extracted, origin evidence deduplicated)
+      Domain transfer:       partial (self-application on non-software target proves mechanic invariance;
+                                      no external domain pilot conducted)
+      Tooling surface:       partial (validators exist, no CLI, no CI integration package)
+      External validation:   none (no adopter outside the authorship context)
+
+    remaining_work:
+      - id: RW-01
+        description: >
+          Pilot the framework in an external domain (not authored by the
+          framework's creators). Self-application proves mechanic invariance.
+          External application proves adoptability and domain fit.
+        blocks: "External adoption claim; moves FC-04 from partially_verified to supported"
+        priority: critical
+
+      - id: RW-02
+        description: "Pilot the framework on a real software codebase with a team that did not design it"
+        blocks: "Self-contained adoption claim in declares field"
+        priority: critical
+
+      - id: RW-03
+        description: "Build CLI tooling (intent init, intent declare, intent transition, intent lint)"
+        blocks: "Practical adoptability at scale"
+        priority: high
+
+      - id: RW-04
+        description: "Define cross-repo intent discovery and notification protocol"
+        blocks: "Multi-repo governance"
+        priority: high
+
+      - id: RW-05
+        description: >
+          Produce an adopter-facing failure mode guide with worked
+          examples, decision trees, and severity calibration. FM-01
+          through FM-05 in this file define the failure modes and
+          their diagnostics. RW-05 is the packaging of that content
+          into a standalone document usable by teams who will not
+          read the root intent declaration.
+        blocks: "Adopters cannot self-diagnose misuse without a standalone guide"
+        priority: high
+        note: >
+          Not to be confused with the failure_modes block in this file,
+          which is the source material. RW-05 is the delivery artifact.
+
+      - id: RW-06
+        description: "Schema governance protocol — how the schema itself versions and migrates"
+        blocks: "Long-term schema stability"
+        priority: medium
+
+      - id: RW-07
+        description: >
+          Publish an origin digest that summarizes the key design
+          decisions and forcing functions from the founding conversation,
+          making the root origin ref resolvable by non-authors.
+        blocks: "Origin traversability for external adopters (FC-02 compliance at root)"
+        priority: medium
+
+    gap_assessment: >
+      The framework is conceptually complete and has one empirical proof:
+      its own self-application on non-software targets (specification prose,
+      criteria YAML, principle declarations). This proof demonstrates that
+      the core mechanics are domain-invariant — the same fields, lifecycle,
+      versioning, and tension model work on prose documents as on codebases.
+
+      What the self-proof does not demonstrate: adoptability by strangers,
+      survival under organizational politics, or behavior at scale. The
+      distance between current state and the declares field is no longer
+      purely conceptual — it is partially empirical, partially untested.
+      The model needs to be used by someone else, on something they own,
+      and the result needs to be evaluated honestly.
+
+  # ─────────────────────────────────────────────────────────────────
+  # TENSIONS
+  # ─────────────────────────────────────────────────────────────────
+  # These are the real structural conflicts within this intent.
+  # Each tension exists between two legitimate goals. Declaring
+  # them here prevents re-litigation and makes the tradeoffs
+  # visible to anyone reading this file.
+  # ─────────────────────────────────────────────────────────────────
+
+  tensions:
+
+    - id: T-01
+      name: "Instantiation depth vs. Core abstraction"
+      between:
+        - "Each domain instantiation needs enough specificity to be actionable (concrete scope syntax, domain-native verification, real examples)"
+        - "The core framework must remain domain-invariant — it cannot accumulate domain-specific fields or assumptions"
+      resolution_strategy:
+        type: policy
+        rule: >
+          The core spec defines the invariant mechanics: data model,
+          lifecycle, versioning semantics, tension model. It uses
+          domain-neutral language (scope is 'what this intent governs',
+          not 'which files'). Each domain produces its own instantiation
+          document that maps core concepts to domain-native primitives.
+          Software maps scope to file globs. Regulation maps scope to
+          section identifiers. Strategy maps scope to initiative names.
+          The core never absorbs domain-specific syntax. Instantiations
+          never modify core field semantics. Depth grows at the edges.
+          The center stays thin.
+      resolution_owner: authors
+      last_reviewed: "2026-02-06"
+      staleness_threshold_days: 180
+
+    - id: T-02
+      name: "Rigor vs. Adoptability"
+      between:
+        - "Completeness of the model (every field, every lifecycle state, every edge case)"
+        - "Willingness of practitioners to actually use it (ceremony must be proportional to value)"
+      resolution_strategy:
+        type: priority_ordering
+        rule: >
+          Adoptability wins when the two conflict. A model that is
+          theoretically complete but practically abandoned is worth
+          nothing. Concretely: the minimum viable intent declaration
+          must require no more than five fields (id, version, declares,
+          scope, owner). Everything else is available but not mandatory
+          at first declaration. Rigor grows as the intent matures — a
+          proposed intent has fewer requirements than an active one.
+      resolution_owner: authors
+      last_reviewed: "2026-02-06"
+      staleness_threshold_days: 180
+
+    - id: T-03
+      name: "Prescriptive vs. Descriptive"
+      between:
+        - "Telling adopters exactly how to structure their _repo/, name their files, run their CI"
+        - "Describing the principles and letting adopters make their own structural choices"
+      resolution_strategy:
+        type: delegation
+        rule: >
+          The core spec is prescriptive about the data model (field names,
+          types, enums, relationships) and descriptive about structure
+          (directory layout, file naming, CI integration). The data model
+          must be interoperable — tools need to parse it. The structure
+          can vary — teams have different workflows. Domain-specific specs
+          may be more prescriptive about structure where their domain
+          demands it (e.g., regulatory compliance may require specific
+          file naming for audit trails).
+      resolution_owner: authors
+      last_reviewed: "2026-02-06"
+      staleness_threshold_days: 180
+
+    - id: T-04
+      name: "Self-referential integrity vs. Forward progress"
+      between:
+        - "The framework must conform to its own model at every stage (eat your own cooking)"
+        - "Enforcing full self-conformance at every step blocks iteration on the model itself"
+      resolution_strategy:
+        type: policy
+        rule: >
+          Self-conformance is required at release boundaries, not at
+          every commit. Work-in-progress versions (0.x.x, -wip suffix)
+          may temporarily violate self-conformance. The violation must
+          be declared in the current_reality block — it is visible, not
+          hidden. Before any version is published or shared, all
+          self-conformance checks must pass. This allows iteration
+          without allowing permanent hypocrisy.
+      resolution_owner: authors
+      last_reviewed: "2026-02-06"
+      staleness_threshold_days: 90
+
+    - id: T-05
+      name: "Cycle discipline vs. Intent ambiguity"
+      between:
+        - "The Red/Green/Refactor cycle demands clear phase boundaries — you must know when an intent is red, when it is green, and when refactoring is safe"
+        - "Intent satisfaction is inherently graduated and judgment-dependent — unlike tests, intents do not produce binary pass/fail signals"
+      resolution_strategy:
+        type: policy
+        rule: >
+          The cycle boundary is a threshold, not a binary. An intent
+          is red when its current_reality shows a gap that the owner
+          judges material. An intent is green when the owner affirms
+          (via last_affirmed and achieved_coverage update) that the
+          declares field is operationally met for the current scope.
+          The judgment is the owner's, but the judgment must be
+          recorded — it is not implicit. If an owner cannot articulate
+          why the intent is green, it is not green. The cycle's
+          discipline is: make the phase transition explicit even when
+          the evidence is qualitative. TDD has the compiler. Intent
+          Driven X has the owner's recorded judgment. Both are
+          accountable. Neither is hidden.
+      resolution_owner: authors
+      last_reviewed: "2026-02-06"
+      staleness_threshold_days: 180
+
+  # ─────────────────────────────────────────────────────────────────
+  # FALSIFIABILITY
+  # ─────────────────────────────────────────────────────────────────
+  # The declares field makes claims. These are the conditions under
+  # which those claims are falsified. If any of these become true,
+  # the intent must either evolve (version bump) or be retracted.
+  # ─────────────────────────────────────────────────────────────────
+
+  falsifiable_claims:
+
+    - id: FC-01
+      claim: "Intent is a first-class entity with its own lifecycle"
+      falsified_when: >
+        Intent cannot be created, versioned, queried, or retired
+        independently of the artifacts it governs. If deleting an
+        artifact deletes the intent, the claim fails.
+      status: supported
+      evidence: "Schema defines intent with independent id, version, and lifecycle states"
+
+    - id: FC-02
+      claim: "The chain Intent → Decision → Artifact is mechanically traversable"
+      falsified_when: >
+        Given an artifact, there is no mechanical path (queryable,
+        not requiring human interpretation) to the decision that
+        produced it and the intent that decision serves. If the
+        chain requires reading prose to traverse, it is documented
+        but not mechanical.
+      status: supported
+      evidence: "Decision schema carries serves_intent ref; artifact scope is declared on intent"
+
+    - id: FC-03
+      claim: "Aspirational intent can be declared without understanding the current state"
+      falsified_when: >
+        The schema or process requires any field that can only be
+        populated by examining the existing system before an
+        aspirational intent can be declared. If current_reality
+        is mandatory for proposed intents, this claim fails.
+      status: supported
+      evidence: >
+        current_reality is required for active aspirational intents
+        but not for proposed ones. A team can declare intent at
+        proposed status with only id, version, declares, scope, owner.
+
+    - id: FC-04
+      claim: "The framework is domain-invariant — domain is a parameter, not a constraint"
+      falsified_when: >
+        A domain that meets the preconditions (has purpose, evolves
+        over time, suffers from purpose degradation) attempts adoption
+        and the core data model requires fields specific to another
+        domain to function. If scope must be expressed as file globs,
+        or artifacts must be code, or verification must be automated
+        tests, the core has absorbed domain assumptions and the claim
+        fails for any non-software domain.
+      status: partially_verified
+      evidence: >
+        The framework has been applied to its own specification
+        documents — a non-software target — through six versioned
+        transitions with mechanical verification (28 completeness
+        criteria, Zod schema validation, Lean proofs, regex evidence
+        scoring). Every core field (id, version, declares, scope,
+        tensions, current_reality, transition_log, falsifiable_claims,
+        failure_modes) functioned on this target without modification.
+        This constitutes a single non-software proof of concept. It
+        demonstrates mechanic invariance but not breadth of domain
+        applicability. No external domain pilot has been conducted.
+
+    - id: FC-05
+      claim: "The framework is self-contained for adoption"
+      falsified_when: >
+        A practitioner who was not involved in the framework's creation
+        attempts adoption using only the published documents and cannot
+        (a) declare their first intent, (b) structure a repository,
+        (c) record a transition, or (d) resolve a tension without
+        contacting the authors. If any of these four require author
+        involvement, the claim fails.
+      status: unverified
+      evidence: "No external adopter has been tested"
+
+    - id: FC-06
+      claim: "Semantic versioning on intent communicates governance-relevant impact"
+      falsified_when: >
+        Teams using the framework cannot reliably distinguish MAJOR
+        from MINOR intent changes, or the distinction does not
+        produce different governance responses (MAJOR triggers
+        artifact review, MINOR does not). If the version numbers
+        are applied but ignored in practice, the claim is
+        technically satisfied but operationally falsified.
+      status: supported_in_theory
+      evidence: >
+        The framework defines MAJOR/MINOR/PATCH with clear backward-
+        compatibility criteria and governance consequences. No team
+        has tested whether the distinction holds under real conditions.
+
+    - id: FC-07
+      claim: "The Red/Green/Refactor cycle is operationally isomorphic to TDD"
+      falsified_when: >
+        The cycle fails to constrain work in the way TDD constrains
+        code. Specifically: (a) teams produce decisions that do not
+        reference a red intent and no one notices (Red constraint
+        fails); (b) teams evolve intents that were never demonstrated
+        as satisfied and the transition log does not flag this (Green
+        constraint fails); (c) the cycle phases cannot be mechanically
+        or procedurally distinguished in practice — teams cannot tell
+        what phase they are in. If any of these hold, the isomorphism
+        is analogical, not structural, and the claim must be downgraded
+        to a pedagogical metaphor.
+      status: supported_in_theory
+      evidence: >
+        The cycle is defined with explicit phase rules, constraint IDs
+        (OC-01 through OC-04), and divergence documentation. The
+        structural parallel holds at the specification level. No team
+        has tested whether the cycle produces TDD-like constraint
+        discipline in practice.
+
+  # ─────────────────────────────────────────────────────────────────
+  # FAILURE MODES
+  # ─────────────────────────────────────────────────────────────────
+  # How the framework fails when adopted badly. A model that cannot
+  # diagnose its own misuse is a model that will be misused silently.
+  # ─────────────────────────────────────────────────────────────────
+
+  failure_modes:
+
+    - id: FM-01
+      name: "Performative intent"
+      description: >
+        Intent declarations exist but are never checked, never
+        versioned, and never referenced in decisions. The _repo/
+        directory is populated on day one and never touched again.
+        Intent becomes documentation that rots.
+      diagnostic: >
+        last_affirmed dates older than staleness threshold across
+        >50% of active intents. Zero transitions logged in the
+        past N months. No decisions reference any intent.
+      mitigation: >
+        CI linting that flags stale intents. Require intent_ref on
+        decision records. Make staleness visible in dashboards.
+
+    - id: FM-02
+      name: "Over-specification"
+      description: >
+        Every function, every endpoint, every configuration value
+        has its own declared intent. The intent layer becomes as
+        complex as the system it governs, defeating the purpose
+        of abstraction. Signal drowns in noise.
+      diagnostic: >
+        Intent count exceeds decision count. Average scope of an
+        intent is a single file or function. Teams spend more time
+        maintaining intent declarations than writing code.
+      mitigation: >
+        Guidance on intent granularity: intents should govern
+        capabilities or commitments, not implementation details.
+        "Payments are idempotent" is an intent. "This function
+        retries three times" is not.
+
+    - id: FM-03
+      name: "Version inflation"
+      description: >
+        Teams bump MAJOR versions for changes that are actually
+        MINOR or PATCH. Every clarification becomes a breaking
+        change. The governance signal (MAJOR = review everything)
+        triggers so frequently that teams learn to ignore it.
+      diagnostic: >
+        MAJOR bump frequency exceeds once per quarter per intent.
+        Transition logs show MAJOR bumps with rationales that
+        describe backward-compatible changes. Teams report
+        "review fatigue."
+      mitigation: >
+        Clear examples of MAJOR vs. MINOR vs. PATCH in adoption
+        guide. Lint rule that flags MAJOR bumps and requires
+        explicit backward-incompatibility evidence in the
+        transition log.
+
+    - id: FM-04
+      name: "Tension avoidance"
+      description: >
+        Teams declare intents but refuse to declare tensions between
+        them, because naming a tension means naming a political
+        conflict. The tension model exists but is empty. Conflicts
+        continue to surface as incidents rather than as governance.
+      diagnostic: >
+        Zero tensions declared across a system with >10 active
+        intents. Post-incident reviews repeatedly identify
+        conflicting intents that were not declared as tensions.
+      mitigation: >
+        Normalize tension declaration as a sign of maturity, not
+        conflict. Include tension declaration in the adoption
+        sequence. Make tension-free systems a linting warning,
+        not an achievement.
+
+    - id: FM-05
+      name: "Cargo cult structure"
+      description: >
+        Teams create the _repo/ directory, populate it with
+        template-generated intent files, and never modify them.
+        The structure exists. The practice doesn't. The framework
+        becomes a checkbox exercise.
+      diagnostic: >
+        All intent files have the same created and last_affirmed
+        date. Zero transitions. All declares fields are generic
+        ("this service intends to work correctly"). No decisions
+        reference intents.
+      mitigation: >
+        Adoption guide emphasizes starting with one real intent
+        driven by a real pain point (pain-first strategy), not
+        a comprehensive declaration. Lint rules that flag generic
+        declares fields.
+
+    - id: FM-06
+      name: "Green-washing"
+      description: >
+        Teams declare intents green without updating evidence.
+        achieved_coverage stays at the same value, current_reality
+        is never reassessed, but the team proceeds to refactor
+        (evolve the intent) as if satisfaction were demonstrated.
+        The cycle degrades: Red → "Green" → Refactor becomes
+        Red → Skip → Mutate. Intent evolution loses its safety net.
+      diagnostic: >
+        Transition logs show version bumps (refactor phase) on intents
+        whose current_reality and achieved_coverage have not been
+        updated since initial declaration. last_affirmed dates advance
+        but gap_assessment text is unchanged. The green phase was
+        never evidenced — it was assumed.
+      mitigation: >
+        Lint rule: transition log entries of type MINOR or MAJOR on
+        intents whose achieved_coverage has not changed since the
+        prior version should trigger a warning. The operational cycle
+        constraint OC-03 makes this explicit — green must be evidenced,
+        not declared by fiat. Teams should be prompted: "What changed
+        in current_reality that justifies this evolution?"
+
+  # ─────────────────────────────────────────────────────────────────
+  # TRANSITION LOG
+  # ─────────────────────────────────────────────────────────────────
+
+  transition_log:
+    - from_version: "1.2.0"
+      to_version: "1.3.0"
+      change_type: MINOR
+      date: "2026-02-06"
+      reason: >
+        The declares field was carrying four distinct concerns: core
+        commitment, feature list, methodology stance, and origin evidence.
+        A field that does four things is testable against none of them
+        precisely. Decomposing declares into purpose-built fields makes
+        each concern independently addressable and testable.
+      forcing_function: >
+        The provides list items (a)-(f) are the framework's concrete
+        deliverables, each falsifiable by a specific FC. But embedded
+        in a prose block, the mapping was implicit. Extracting provides
+        as a structured field with explicit tested_by references converts
+        implicit traceability into mechanical traceability — the same
+        discipline the framework demands of its adopters (FC-02).
+      what_changed:
+        - "declares: tightened to core falsifiable commitment only (what the framework IS and promises)"
+        - "provides: new field — items (a)-(f) extracted as structured array with FC cross-references"
+        - "design_stance: new field — instantiation-over-generalization methodology extracted from declares"
+        - "Origin evidence sentence removed from declares — redundant with co_origins[2] (self-referential-bootstrap-v1.5.0)"
+        - "current_reality.status: added Declares decomposition line"
+        - "Version: 1.3.0 MINOR (not PATCH — provides with tested_by is new structural meaning)"
+        - "schema_version: 0.4.0 (provides and design_stance are new top-level fields)"
+      residue: >
+        The provides.tested_by cross-references create a new invariant:
+        every provides item should map to at least one FC. provides-d
+        (tension model) currently has tested_by: [] — it is tested by
+        CC criteria (CC-08a/b/c) rather than a standalone falsifiable
+        claim. This is an honest gap. Either a new FC should be created
+        for the tension model or provides-d should reference the CC
+        criteria directly. Deferred to avoid scope creep in this transition.
+
+    - from_version: "1.1.1"
+      to_version: "1.2.0"
+      change_type: MINOR
+      date: "2026-02-06"
+      reason: >
+        The framework lacked an operational discipline — it defined what
+        to declare but not how to work. The structural isomorphism between
+        the framework's practice (declare unsatisfied intent, satisfy it,
+        evolve it) and TDD's Red/Green/Refactor was recognized as a
+        first-class commitment, not a pedagogical metaphor. The framework's
+        own transition history (1.0.0 → 1.1.0 → 1.1.1) already followed
+        this cycle implicitly: red (self-consistency violation identified),
+        green (violation corrected), refactor (metadata sharpened). Making
+        the cycle explicit converts implicit practice into governable
+        structure.
+      forcing_function: >
+        A framework that governs purpose evolution but does not define
+        the operational discipline for evolving purpose leaves adopters
+        with a data model and no workflow. The data model answers "what
+        do I declare?" The cycle answers "what do I do next?" Without
+        (f), the framework is a schema. With (f), it is a practice.
+      what_changed:
+        - "declares: condensed three opening paragraphs into one — eliminated redundancy between 'core claim is structural', 'intent is first-class entity', and opening paragraph"
+        - "declares: added item (f) — operational cycle (Red/Green/Refactor)"
+        - "Added operational_cycle section with phases, constraints, and TDD divergence"
+        - "Added isomorphism_claim to operational_cycle (moved from declares — declares states what, operational_cycle explains why)"
+        - "tdd_isomorphism field set to 'claimed' not 'structural' — FC-07 is supported_in_theory, not verified"
+        - "Red phase output corrected: 'intent_type: aspirational, status: proposed' (not mixed axes)"
+        - "Added co_origin: tdd-isomorphism-discovery"
+        - "Added T-05: Cycle discipline vs. Intent ambiguity"
+        - "Added FC-07: Red/Green/Refactor is operationally isomorphic to TDD"
+        - "Added FM-06: Green-washing (skipping evidence in the green phase)"
+        - "current_reality.status: added Operational cycle line"
+      residue: >
+        The operational cycle is defined but untested by external adopters.
+        FC-07 status is supported_in_theory. The cycle's constraint
+        discipline (do teams actually refuse to work without a red intent?)
+        requires the same external validation as the rest of the framework.
+        The cycle does not introduce new untestable commitments — it
+        introduces new testable ones.
+
+    - from_version: "1.1.0"
+      to_version: "1.1.1"
+      change_type: PATCH
+      date: "2026-02-06"
+      reason: >
+        External review identified five internal consistency issues,
+        none of which change the intent's commitments but all of which
+        affect a reader's ability to accurately assess the framework's
+        evidence state and self-conformance:
+          (1) confidence: medium was unjustified — a reader cannot
+              distinguish author doubt from bounded evidence without
+              a rationale;
+          (2) the origin ref is opaque to non-authors, violating the
+              spirit of FC-02 at the root level;
+          (3) RW-05 appeared to duplicate existing failure_modes content
+              — the distinction between source material and delivery
+              artifact was not stated;
+          (4) the root intent had no retirement conditions, creating a
+              blind spot in a framework that governs lifecycle;
+          (5) no remaining work item tracked the origin accessibility
+              gap.
+      forcing_function: >
+        A framework that insists on self-conformance and mechanical
+        traversability cannot leave its own root intent with an
+        unjustified confidence field, an unresolvable origin, and
+        an undeclared retirement policy. These are not aspirational
+        gaps — they are consistency defects in the current version.
+      what_changed:
+        - "Added confidence_rationale field explaining what medium means"
+        - "Added accessibility and note to origin, acknowledging non-resolvability"
+        - "Added RW-07: publish origin digest for external traversability"
+        - "Clarified RW-05: distinguished FM source material from adopter-facing delivery artifact"
+        - "Added retirement_conditions to root intent"
+      residue: >
+        None. All changes are clarifications or additions of missing
+        self-conformance metadata. No prior artifacts are invalidated.
+        No commitments are altered.
+
+    - from_version: "1.0.0"
+      to_version: "1.1.0"
+      change_type: MINOR
+      date: "2026-02-06"
+      reason: >
+        The framework's self-application contradicted its own framing.
+        The file declared achieved_coverage: none and FC-04 status:
+        unverified while simultaneously being a functioning non-software
+        application of the framework. The declares field listed software
+        first, implying it was the primary domain, when the strongest
+        empirical evidence was on a non-software target (the framework's
+        own specification documents).
+      forcing_function: >
+        Internal consistency violation: the file's metadata contradicted
+        the evidence produced by the file's own existence. A framework
+        that cannot accurately describe its own proof state is not
+        self-consistent.
+      what_changed:
+        - "declares field rewritten: domain is now a parameter, not a list with software first"
+        - "achieved_coverage: none → minimal"
+        - "FC-04 status: unverified → partially_verified with self-application evidence"
+        - "FC-04 claim reworded: 'applies beyond software' → 'domain-invariant'"
+        - "T-01 reframed: 'Depth vs. Breadth' → 'Instantiation depth vs. Core abstraction'"
+        - "current_reality.state updated to acknowledge self-application as non-software proof"
+        - "RW-01 reframed: 'pilot non-software domain' → 'pilot external domain'"
+        - "gap_assessment updated: 'purely conceptual' → 'partially empirical'"
+      residue: >
+        None. This is a MINOR change — all prior artifacts still satisfy
+        the intent. The change is a correction to the framework's
+        self-description, not a reorientation of its purpose.
+
+  # ─────────────────────────────────────────────────────────────────
+  # EXTENSION SURFACE
+  # ─────────────────────────────────────────────────────────────────
 
   ext:
-    research:
-      next_phase: "Phase 2: Complete software domain, verify verification stack"
-      then: "Phase 3: Instantiate first candidate domain (regulatory recommended)"
-      vision: "Every domain reaching v1.0.0 proves domain-agnosticism"
+    meta:
+      is_self_referential: true
+      is_non_software_application: true
+      note: >
+        This file uses the framework to declare the framework. It is
+        simultaneously the root intent declaration AND evidence for
+        FC-04 (domain-invariance): the target governed by this file
+        is prose, YAML, and criteria — not software. The fact that
+        every field functions here without modification is the proof
+        that the domain is a parameter. Self-conformance is required
+        at release boundaries per T-04.
+
+# ═══════════════════════════════════════════════════════════════════
+# STRUCTURAL NOTES
+# ═══════════════════════════════════════════════════════════════════
+#
+# This is the root intent. Everything else in the framework either
+# serves this intent directly or serves a child intent that serves
+# this one. The graph is:
+#
+#   intent-driven-framework-definition (this file)
+#     ├── intent-manifesto-itself        (the manifesto's own intent)
+#     ├── intent-framework-domain-agnostic (the breadth claim — may merge into this root)
+#     ├── intent-core-principles         (the seven principles)
+#     └── [domain instantiations]        (created per-domain by adopters)
+#
+# The root intent is falsifiable (FC-01 through FC-07), has declared
+# tensions (T-01 through T-05), names its failure modes (FM-01
+# through FM-06), and carries an honest current_reality that admits
+# what is unproven.
+#
+# The 1.1.0 transition was forced by a self-consistency violation:
+# the file's own existence as a functioning non-software application
+# contradicted its claims of achieved_coverage: none and FC-04:
+# unverified. The framework could not accurately describe its own
+# evidence. Correcting this was not a reorientation — it was the
+# framework learning to read its own proof.
+#
+# The 1.1.1 patch was forced by external review: five consistency
+# defects (unjustified confidence, opaque origin, ambiguous RW-05,
+# missing retirement conditions, untracked origin accessibility gap)
+# were corrected without altering any commitment. The patch
+# demonstrates that the transition model works at PATCH granularity,
+# not only at MINOR.
+#
+# The 1.2.0 transition formalized the operational cycle. The framework
+# already followed Red/Green/Refactor implicitly — every prior
+# transition began with a red state (inconsistency detected), moved
+# to green (inconsistency corrected), and refined (metadata sharpened).
+# Making this explicit converts the framework from a data model into
+# a practice. The TDD isomorphism is the adoption bridge: teams that
+# already understand "no code without a failing test" can translate
+# directly to "no decision without an unsatisfied intent."
+#
+# If this file is not the most rigorously self-conforming document
+# in the entire framework, the framework is hypocritical.
+# ═══════════════════════════════════════════════════════════════════

@@ -9,6 +9,17 @@ const {
   validateDeferredCriteria,
   validateSelfConformance,
   validateDependsOnRefs,
+  validateTensionIntegrity,
+  validateFalsifiableClaimsIntegrity,
+  validateFailureModeIntegrity,
+  validateRetirementConditions,
+  validateCoOriginConsistency,
+  validateDeclaresQuality,
+  validateAffirmationStaleness,
+  validateOperationalCycleIntegrity,
+  validateCycleConstraintCoverage,
+  validateProvidesFcRefs,
+  validateProvidesCompleteness,
 } = require("./schema");
 const { createFlawStore, Severity, FlawStatus } = require("./store");
 
@@ -78,12 +89,27 @@ function collectFlaws(intent) {
 
   // Phase 2: Structural validators
   const structuralChecks = [
+    // v0.1.0 validators
     { fn: validateTransitionLogIntegrity, severity: Severity.ERROR },
     { fn: validateCriterionIdUniqueness, severity: Severity.ERROR },
     { fn: validateScopeCoverage, severity: Severity.WARNING },
     { fn: validateDeferredCriteria, severity: Severity.ERROR },
     { fn: validateSelfConformance, severity: Severity.CRITICAL },
     { fn: validateDependsOnRefs, severity: Severity.ERROR },
+    // v0.2.0 validators
+    { fn: validateTensionIntegrity, severity: Severity.ERROR },
+    { fn: validateFalsifiableClaimsIntegrity, severity: Severity.ERROR },
+    { fn: validateFailureModeIntegrity, severity: Severity.WARNING },
+    { fn: validateRetirementConditions, severity: Severity.WARNING },
+    { fn: validateCoOriginConsistency, severity: Severity.WARNING },
+    { fn: validateDeclaresQuality, severity: Severity.ERROR },
+    { fn: validateAffirmationStaleness, severity: Severity.WARNING },
+    // v0.3.0 validators
+    { fn: validateOperationalCycleIntegrity, severity: Severity.ERROR },
+    { fn: validateCycleConstraintCoverage, severity: Severity.ERROR },
+    // v0.4.0 validators
+    { fn: validateProvidesFcRefs, severity: Severity.ERROR },
+    { fn: validateProvidesCompleteness, severity: Severity.WARNING },
   ];
 
   for (const check of structuralChecks) {
@@ -134,8 +160,8 @@ function renderReport(store, intent, runId, advisories) {
 
   console.log();
   console.log("╔══════════════════════════════════════════════════════════╗");
-  console.log("║  Intent Manifesto Validator                             ║");
-  console.log(`║  Schema: Zod v4 │ State: Zustand │ Target: ${(intent.version || "?").padEnd(9)}║`);
+  console.log("║  Intent Framework Validator                              ║");
+  console.log(`║  Schema: 0.4.0 │ State: Zustand │ Target: ${(intent.version || "?").padEnd(9)}║`);
   console.log("╚══════════════════════════════════════════════════════════╝");
 
   console.log();
