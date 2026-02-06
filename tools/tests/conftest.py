@@ -24,6 +24,9 @@ DEFAULT_LEAN_FILE = REPO_ROOT / "lean" / "IntentDrivenFramework.lean"
 
 # ── CLI OPTIONS ──────────────────────────────────────────────────
 
+DEFAULT_PROSE_MANIFESTO = REPO_ROOT / "prose" / "intent-manifesto.md"
+
+
 def pytest_addoption(parser):
     parser.addoption(
         "--root-intent",
@@ -39,6 +42,11 @@ def pytest_addoption(parser):
         "--lean-file",
         default=str(DEFAULT_LEAN_FILE),
         help="Path to the Lean formalization file",
+    )
+    parser.addoption(
+        "--prose-manifesto",
+        default=str(DEFAULT_PROSE_MANIFESTO),
+        help="Path to the prose manifesto markdown file",
     )
 
 
@@ -69,6 +77,21 @@ def root_intent_text(root_intent_path) -> str:
     if not root_intent_path.exists():
         pytest.skip(f"Root intent not found: {root_intent_path}")
     return root_intent_path.read_text(encoding="utf-8")
+
+
+# ── PROSE FIXTURES ──────────────────────────────────────────────
+
+@pytest.fixture(scope="session")
+def prose_manifesto_path(request) -> Path:
+    return Path(request.config.getoption("--prose-manifesto"))
+
+
+@pytest.fixture(scope="session")
+def prose_manifesto_text(prose_manifesto_path) -> str:
+    """Raw text of the prose manifesto for consistency checks."""
+    if not prose_manifesto_path.exists():
+        pytest.skip(f"Prose manifesto not found: {prose_manifesto_path}")
+    return prose_manifesto_path.read_text(encoding="utf-8")
 
 
 # ── CROSS-LAYER FIXTURES ────────────────────────────────────────
@@ -107,6 +130,7 @@ def pytest_configure(config):
         "self_conformance: CC-18, CC-27",
         "operational: CC-19 through CC-26",
         "cross_layer: cross-layer consistency (YAML/Zod/Lean)",
+        "prose: prose-YAML consistency checks",
     ]:
         config.addinivalue_line("markers", marker)
 

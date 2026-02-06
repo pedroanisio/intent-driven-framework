@@ -13,5 +13,6 @@ markers = [
     "self_conformance: CC-18, CC-27",
     "operational: CC-19 through CC-26",
     "cross_layer: cross-layer consistency (YAML/Zod/Lean)",
+    "prose: prose-YAML consistency checks",
 ]
 addopts = "-v --tb=short"
