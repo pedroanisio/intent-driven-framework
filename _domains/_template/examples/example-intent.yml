@@ -1,0 +1,127 @@
+# Example Intent Block for DOMAIN
+#
+# This file shows what a real intent looks like in your domain.
+# Copy this structure and customize for your needs.
+
+intent:
+  id: example-DOMAIN-intent-1
+  version: 1.0.0
+
+  # ─── WHAT THIS INTENT DECLARES ────────────────────────────────────────
+  declares: >
+    [EDIT THIS]
+    A specific, falsifiable claim in your domain.
+
+    Examples across domains:
+    - Software: "Checkout endpoint responds in <200ms p99 latency"
+    - Regulatory: "User consent is explicit, documented, and revocable"
+    - Product: "Checkout conversion rate reaches 4% by Q3 2024"
+    - AI Agent: "Agent never executes DELETE operations on user data"
+    - Governance: "All hiring decisions go through interview panel review"
+
+  intent_type: [achieved | aspirational]
+  # Use "achieved" if this is how the system currently works
+  # Use "aspirational" if this is what you're working toward
+
+  # ─── SCOPE: WHICH PARTS OF THE SYSTEM THIS GOVERNS ─────────────────────
+  scope:
+    - [DOMAIN-specific scope reference 1]
+    - [DOMAIN-specific scope reference 2]
+    # Examples:
+    # - Software: src/checkout/**, tests/integration/checkout
+    # - Regulatory: GDPR Article 7, Article 13
+    # - Product: checkout-flow, onboarding
+    # - AI Agent: customer-support-scope, billing-authority
+    # - Governance: sales-team, product-team
+
+  # ─── PRIORITY AND STATUS ───────────────────────────────────────────────
+  priority: [critical | high | medium | low]
+  status: [proposed | active | evolving | superseded | residual | retracted]
+
+  # ─── IF ASPIRATIONAL: DESCRIBE THE CURRENT GAP ─────────────────────────
+  current_reality:
+    assessed: "2026-02-06"
+    description: >
+      [Only if intent_type is "aspirational"]
+      Honest description of the current state.
+
+      Examples:
+      - Software: "Currently at 400ms p99 latency; need to optimize hot path"
+      - Regulatory: "Consent form exists but not revocable online; needs feature"
+      - Product: "Currently at 2.1% conversion; need UX redesign and growth experiment"
+      - AI Agent: "Agent deletes data via proxy calls; need explicit boundary check"
+
+    gaps:
+      - [Specific area that falls short 1]
+      - [Specific area that falls short 2]
+      # Examples:
+      # - "Mobile version not optimized"
+      # - "Online revocation flow doesn't exist"
+      # - "Growth loops not implemented"
+
+  # ─── IMPLEMENTATION COVERAGE ──────────────────────────────────────────
+  achieved_coverage: [none | minimal | partial | substantial | full]
+  # For aspirational intents: how much of the goal is already done?
+  # For achieved intents: how well-implemented is this commitment?
+  #
+  # none:        Intent declared but no implementation exists
+  # minimal:     Token implementation; intent barely addressed
+  # partial:     Some commitments met; others outstanding
+  # substantial: Most commitments met; edge cases remain
+  # full:        All commitments met and verified
+
+  # ─── OWNERSHIP AND CONFIDENCE ─────────────────────────────────────────
+  owner: [Team or person accountable for this intent]
+  confidence: [high | medium | low]
+  # high:   Intent is well-understood and stable
+  # medium: Intent is directionally correct but may evolve
+  # low:    Intent is exploratory or uncertain
+
+  # ─── PROVENANCE: WHERE THIS INTENT CAME FROM ──────────────────────────
+  origin:
+    type: [engineering | product | incident | discovery | regulatory | organizational | devops | ux | data | sre | security]
+    ref: "[External reference: PR #123, RFC, regulation name, incident ticket]"
+    relationship: [derived_from | motivated_by | constrained_by | triggered_by | discovered_in]
+
+  # ─── RELATIONSHIPS TO OTHER INTENTS ────────────────────────────────────
+
+  # Tensions: intents that conflict with this one
+  tensions:
+    - ref: [another-intent-id]
+      description: >
+        [How they conflict]
+        Example: "Low latency (this intent) conflicts with comprehensive logging
+        (audit intent) because logging adds 50ms overhead."
+      resolution_strategy: >
+        [How the tradeoff is being made]
+        Example: "Use async logging; accept 1-second delay in audit trail."
+
+  # Serves: parent intents this one supports
+  serves: []
+
+  # Supersedes: older versions of this intent, if any
+  supersedes: []
+
+  # ─── TRANSITION LOG: EVOLUTION HISTORY ─────────────────────────────────
+  transition_log:
+    # Example transition
+    - from: 0.0.1
+      to: 1.0.0
+      date: "2026-02-06"
+      author: "[Your name]"
+      change_type: [clarification | correction | extension | reclassification | breaking | deprecation]
+      reason: >
+        [Why this changed]
+        Example: "Clarified that revocation must complete within 24 hours
+        per GDPR Article 21 interpretation."
+
+      forcing_function: [incident | requirement | scaling | organizational | other]
+      # What prompted the change?
+      # incident:       Incident/outage forced the change
+      # requirement:    New requirement from business/compliance
+      # scaling:        Scale introduced new constraints
+      # organizational: Org change (team restructure, merger, etc.)
+      # other:          [specify]
+
+      summary: >
+        [Concise summary of what changed]

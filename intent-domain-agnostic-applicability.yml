@@ -1,0 +1,267 @@
+intent:
+  id: intent-framework-domain-agnostic
+  version: 0.2.0
+  schema_version: 0.1.0
+  declares: >
+    The Intent Framework applies to any system that carries purpose 
+    and evolves over time — not only software codebases. Any domain 
+    where decisions are made in service of goals that degrade, drift, 
+    or become invisible as people and context change can be governed 
+    by declared, versioned, verifiable intent.
+
+  intent_type: aspirational
+
+  scope:
+    primary:
+      - intent-manifesto.md
+      - intent-spec.md
+    implicit:
+      - _repo/
+      - schemas/
+      - plugins/
+
+  priority: high
+  status: proposed
+  owner: authors
+  confidence: medium
+  achieved_coverage: none
+
+  origin:
+    type: engineering
+    ref: "self-referential-bootstrap-v1.6.1"
+    relationship: discovered_in
+
+  co_origins:
+    - type: discovery
+      ref: "criteria-driven-prose-evolution"
+      relationship: motivated_by
+
+  current_reality:
+    state: >
+      The framework has been validated against exactly one non-trivial 
+      target: itself. The manifesto, spec, and criteria YAML co-evolved 
+      through nine versioned transitions (1.0.0 → 1.6.1) using the 
+      model's own mechanics — declared intent, gap tracking, transition 
+      logging, tension resolution, and mechanical verification. This 
+      constitutes a single proof of concept. No external domain adoption 
+      (product strategy, organizational governance, standards management, 
+      AI agent guardrails) has been attempted.
+    status: >
+      Bootstrap proof: complete. The self-referential loop demonstrates 
+      that the core mechanic (declare → version → check → evolve) 
+      operates on structured prose, not only on code. Nine transitions 
+      are kernel-checked by Lean 4 (contiguous chain, all summaries 
+      non-empty, all change_types canonical).
+      
+      Domain transfer: untested. The five candidate domains identified 
+      below are structurally plausible but lack even a 0.x.x pilot.
+    remaining_work: >
+      1. Identify a non-software pilot domain and produce a minimal 
+         viable intent declaration set within it.
+      2. Test whether the achieved/aspirational distinction — the 
+         framework's primary adoption advantage — transfers to domains 
+         where "current_reality" is not machine-inspectable.
+      3. Evaluate whether the tension model (cross-discipline, with 
+         resolution owners) maps to organizational governance where 
+         "discipline" means department or function, not engineering role.
+      4. Determine which schema fields are software-specific 
+         (scope as glob patterns, CI validation hooks) and which 
+         are domain-agnostic (version, declares, status, tensions).
+    last_assessed: "2026-02-06"
+
+  needs_verification: true
+
+  # ─── EVIDENCE: THE BOOTSTRAP ARGUMENT ────────────────────────────
+  #
+  # Why a single self-referential proof matters:
+  #
+  # The framework governed its own development using its own model.
+  # This is not circular — it is a falsifiable test. If the model 
+  # could not handle:
+  #   - evolving declarations (the criteria changed 9 times),
+  #   - honest gap tracking (current_reality.status updated each cycle),
+  #   - vocabulary drift across artifacts (enum canonicalization in 
+  #     v1.4.1 and v1.5.0, spec-to-formalization alignment in v1.6.1),
+  #   - five-layer mechanical verification (Lean 4 kernel-checked proofs,
+  #     NLP semantic entailment, pytest TDD suite, regex scorer, Zod 
+  #     schema validator),
+  #   - tension between completeness and scope creep (deferred tier),
+  # then the self-referential application would have failed visibly.
+  #
+  # It did not fail. The transition log records real gaps found and 
+  # closed: CC-05 violations, scope duplication, missing deprecation 
+  # ceremonies, absent tooling contracts, achieved_coverage placement 
+  # drift, origin_type enum misalignment. Each was surfaced by the 
+  # model, tracked as a flaw, and resolved in a subsequent version.
+  #
+  # The bootstrap demonstrates domain-agnosticism because:
+  #   (a) the target was structured prose, not software,
+  #   (b) "scope" meant document sections, not file paths,
+  #   (c) "CI validation" meant a five-layer verification stack 
+  #       (Lean proofs, NLP entailment, pytest, regex, Zod), not 
+  #       code linting,
+  #   (d) "tensions" meant completeness vs. scope creep, not 
+  #       performance vs. correctness.
+  #
+  # The core mechanic transferred without modification. Only the 
+  # periphery (scope syntax, hook implementations) required 
+  # domain-specific adaptation.
+  #
+  # The five-layer verification stack itself demonstrates graduated 
+  # applicability: Lean proofs cover algebraic structure (12 CC), 
+  # NLP covers semantic prose quality (16 CC), pytest enforces 
+  # criteria-first TDD workflow (30 CC), regex provides fast 
+  # deterministic baseline (28 CC), and Zod validates schema shape 
+  # (structural invariants). Not every domain needs all five layers 
+  # — but every domain needs at least one verification mechanism 
+  # that can answer "does this artifact still satisfy its declared 
+  # intent?"
+
+  # ─── CANDIDATE DOMAINS ───────────────────────────────────────────
+
+  ext:
+    domain_transfer:
+      candidates:
+
+        - domain: specification_and_standards
+          structural_fit: high
+          rationale: >
+            Living standards (API specs, design systems, compliance 
+            frameworks) accumulate amendments without tracking why 
+            constraints exist. Each principle or rule maps to a declared 
+            intent. Each revision is a transition. Each compromise 
+            between competing goals (backward compatibility vs. clean 
+            design) is a tension with a resolution owner.
+          transferable_concepts:
+            - declares (each rule as falsifiable commitment)
+            - transition_log (amendment history with forcing functions)
+            - tensions (competing design goals with named resolution)
+            - achieved_vs_aspirational (current spec vs. target spec)
+          adaptation_required:
+            - scope becomes section/clause references, not file globs
+            - CI validation becomes editorial review automation
+
+        - domain: product_strategy
+          structural_fit: high
+          rationale: >
+            Product teams already maintain intent-like artifacts — OKRs, 
+            north stars, principles — but these are disconnected from 
+            the decisions they govern. "Checkout conversion above 4%" 
+            as a versioned, scoped intent linked to design decisions and 
+            in declared tension with "fraud loss below 0.1%" creates a 
+            decision audit trail that survives team turnover.
+          transferable_concepts:
+            - achieved_vs_aspirational (current metrics vs. targets)
+            - achieved_coverage (none→partial→full tracks goal progress)
+            - tensions (growth vs. risk, speed vs. quality)
+            - decisions (product choices linked to governing intent)
+            - current_reality (honest gap between strategy and execution)
+          adaptation_required:
+            - scope becomes product areas or user journeys, not code paths
+            - confidence maps to data quality, not code understanding
+            - verification is metric-based, not code-based
+
+        - domain: organizational_governance
+          structural_fit: medium
+          rationale: >
+            Cross-department tensions (sales wants customization, 
+            engineering wants standardization; legal wants caution, 
+            product wants speed) are the operating system of an 
+            organization. Currently invisible, resolved ad hoc, 
+            re-litigated quarterly. Declaring these tensions with 
+            resolution owners and versioned strategies is governance 
+            that does not depend on institutional memory.
+          transferable_concepts:
+            - tensions (the primary value — cross-functional tradeoffs)
+            - resolution_owner (who breaks deadlocks)
+            - transition_log (how organizational commitments evolved)
+            - superseded / residual (policies that changed but whose 
+              effects remain)
+          adaptation_required:
+            - discipline becomes department or function
+            - enforcement is social/procedural, not automated
+            - verification requires human judgment, not tooling
+            - political dynamics may resist explicit tension declaration
+
+        - domain: ai_agent_guardrails
+          structural_fit: medium
+          rationale: >
+            Agents working within a scope governed by declared intents 
+            gain purpose contracts they can self-verify against. "Does 
+            my proposed change violate any intent governing this scope?" 
+            is evaluable by an LLM when declares follows the 
+            falsifiability pattern (subject + commitment verb + 
+            observable predicate). Intent declarations are the semantic 
+            layer between "do what the user asks" and "respect these 
+            boundaries."
+          transferable_concepts:
+            - declares (machine-evaluable purpose statements)
+            - scope (binding agent actions to governed areas)
+            - tensions (when user requests conflict with system intents)
+            - version (agent knows which contract version it operates under)
+          adaptation_required:
+            - real-time evaluation replaces CI-time validation
+            - confidence thresholds drive agent autonomy levels
+            - violation detection must be probabilistic, not deterministic
+            - the gap between "falsifiable in principle" and 
+              "mechanically evaluable by an LLM" is nontrivial
+
+        - domain: regulatory_compliance
+          structural_fit: high
+          rationale: >
+            Compliance requirements are intents imposed by external 
+            authorities. They have versions (regulatory amendments), 
+            transitions (rule changes with grace periods), tensions 
+            (compliance cost vs. business agility), and a chronic 
+            problem of residual artifacts (processes shaped by rules 
+            that were superseded years ago but nobody confirmed).
+          transferable_concepts:
+            - lifecycle (proposed → active → superseded maps directly 
+              to regulatory drafting → enforcement → amendment)
+            - deprecation_ceremonies (sunset provisions with grace periods)
+            - origin (regulatory mandate as provenance)
+            - current_reality (gap between required and actual compliance)
+            - retracted (regulation withdrawn — distinct from superseded)
+          adaptation_required:
+            - external authority owns intent, not the implementing team
+            - version semantics may not follow semver (regulatory numbering)
+            - audit trail requirements are stricter than engineering norms
+
+      # What the bootstrap proved vs. what remains unproven
+      proven_by_bootstrap:
+        - "Core mechanic (declare → version → check → evolve) works on non-code targets"
+        - "Achieved/aspirational distinction provides practical entry point"
+        - "Tension model surfaces real tradeoffs (completeness vs. scope creep)"
+        - "Transition log captures honest evolution history (9 transitions, kernel-checked)"
+        - "Mechanical verification is possible when declares is falsifiable"
+        - "Graduated verification works — not every criterion needs every layer"
+        - "Criteria-first TDD workflow (declare criterion → write test → write prose) enforces rigor"
+        - "0.x.x confidence with needs_verification:true is a productive starting state"
+        - "Spec-to-formalization drift is detectable and fixable within the model (v1.6.1)"
+
+      unproven:
+        - "Model works when verification is human-only (no tooling possible)"
+        - "Tension declaration is politically viable in non-engineering orgs"
+        - "Resolution_owner assignment works across organizational power structures"
+        - "The model adds value when the target domain changes faster than version cycles"
+        - "Extension surface (plugins) is useful outside software toolchains"
+        - "achieved_coverage enum (none→full) maps meaningfully to non-code domains"
+
+  # ─── TENSIONS ────────────────────────────────────────────────────
+
+  tensions:
+    - ref: intent-manifesto-itself
+      description: >
+        The manifesto's credibility depends on specificity to software 
+        engineering (concrete examples, real schemas, CI integration). 
+        Broadening the model to other domains risks diluting that 
+        specificity into generic "governance framework" language that 
+        applies to everything and commits to nothing. The tension is 
+        between depth in one domain and breadth across many.
+      resolution_strategy: >
+        Keep the manifesto and spec software-specific. Express 
+        domain-agnostic applicability as a separate intent (this 
+        document) with domain-specific adaptation notes. Let each 
+        candidate domain produce its own manifesto fork rather than 
+        abstracting the original. Breadth grows through instantiation, 
+        not generalization.

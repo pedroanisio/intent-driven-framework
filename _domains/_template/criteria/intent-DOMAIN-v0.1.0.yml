@@ -1,0 +1,114 @@
+intent:
+  id: intent-framework-DOMAIN
+  version: 0.1.0
+  schema_version: 0.1.0
+
+  declares: >
+    [EDIT THIS]
+    This instantiation proves that the Intent Framework can govern
+    [DOMAIN] systems. The declaration is falsifiable: if the framework
+    fails to [specific test], the claim is disproven.
+
+    Example:
+    "This instantiation proves that intent blocks can make compliance
+    requirements explicit and machine-verifiable. It fails if: (a)
+    extracting requirements from regulations is too subjective,
+    or (b) automated verification produces >10% false positives."
+
+  intent_type: aspirational
+
+  current_reality:
+    state: >
+      [EDIT THIS]
+      The DOMAIN domain instantiation has reached [current stage].
+
+      Examples:
+      - "v0.1.0: Bootstrap criteria block created. Pilot applied to [concrete example]."
+      - "v0.2.0: 5 key intents extracted from [source]. Verification layers 1-2 passing."
+      - "v0.3.0: Real-world test with [organization]. 3-month trial completed."
+
+    status: >
+      [EDIT THIS]
+      Current blockers:
+      - [Blocker 1]
+      - [Blocker 2]
+      Opportunities:
+      - [Opportunity 1]
+      - [Opportunity 2]
+
+    remaining_work: >
+      [EDIT THIS]
+      To advance from v0.1.0 to v0.2.0:
+      1. [Task 1]
+      2. [Task 2]
+      3. [Task 3]
+      To prove v1.0.0 (domain maturity):
+      - [Larger goal 1]
+      - [Larger goal 2]
+
+    last_assessed: "2026-02-06"
+
+  scope:
+    primary:
+      - prose/intent-spec-DOMAIN.md
+    implicit:
+      - examples/
+      - This criteria block
+      - [Other DOMAIN-specific scopes]
+
+  priority: high
+  status: proposed
+  owner: [Your name/team email]
+  confidence: low
+
+  origin:
+    type: engineering
+    ref: "DOMAIN-domain-instantiation"
+    relationship: derived_from
+
+  # ─── WHAT THE PILOT PROVED VS. WHAT REMAINS UNPROVEN ────────────────
+
+  ext:
+    domain_transfer:
+
+      # Things the pilot demonstrated work
+      proven_by_pilot:
+        - "Core mechanic works on [DOMAIN]-specific targets"
+        - "Scope semantics transfer with minimal modification"
+        - "[Verification layer X] successfully applied to [type of intent]"
+        - "Real-world use case: [specific example that worked]"
+        - "[Another specific success]"
+
+      # Things that are still unknown / need evidence
+      unproven:
+        - "Scalability: does the model work with 100+ intents?"
+        - "Political adoption: will [stakeholders] maintain intents?"
+        - "Verification at scale: can [layer X] stay fast?"
+        - "Change frequency: what happens when domain changes faster than version cycles?"
+        - "[Domain-specific unknown]"
+
+      # Tensions between the aspiration and reality
+      tensions:
+        - ref: domain-completeness-vs-adoption
+          description: >
+            Making the framework complete enough to handle all edge cases
+            risks making it too complex for practitioners to use.
+          resolution_strategy: >
+            Start minimal (core 28 criteria), add domain-specific criteria
+            incrementally as pilots reveal gaps.
+
+  # ─── TRANSITION LOG ────────────────────────────────────────────────────
+
+  transition_log:
+    - from: 0.0.0
+      to: 0.1.0
+      change_type: extension
+      date: "2026-02-06"
+      author: "[Your name]"
+      reason: >
+        Bootstrap criteria block created for DOMAIN domain.
+      forcing_function: domain-instantiation-research
+      summary: >
+        Established v0.1.0 scope: manifesto, spec, example intents.
+        Identified 5 candidate verification layers.
+        Documented open questions and success criteria.

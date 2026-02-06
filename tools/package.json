@@ -1,0 +1,22 @@
+{
+  "name": "intent-framework-tools",
+  "version": "1.6.1",
+  "description": "Validation and scoring tools for the Intent Framework",
+  "private": true,
+  "scripts": {
+    "validate": "node validate.js ../criteria/intent-manifesto-v1.6.1.yml",
+    "history": "node validate.js history",
+    "reset": "node validate.js reset",
+    "score": "python3 score_v150.py ../prose/intent-manifesto.md ../prose/intent-spec.md ../criteria/intent-manifesto-v1.6.1.yml",
+    "score:nlp": "python3 nlp_validator.py ../prose/intent-manifesto.md ../prose/intent-spec.md",
+    "score:nlp:dry": "python3 nlp_validator.py --dry-run ../prose/intent-manifesto.md ../prose/intent-spec.md",
+    "test": "python3 -m pytest tests/ -v",
+    "test:core": "python3 -m pytest tests/ -v -m core",
+    "test:deferred": "python3 -m pytest tests/ -v -m deferred"
+  },
+  "dependencies": {
+    "yaml": "^2.3.0",
+    "zod": "^3.22.0",
+    "zustand": "^4.5.0"
+  }
+}
