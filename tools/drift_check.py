@@ -119,6 +119,13 @@ def parse_init_directories(text: str) -> list[str] | None:
     ]
 
 
+def parse_intent_template_block(text: str) -> str | None:
+    m = re.search(r"def\s+intent_template\(.*?\):\s*.*?return\s+\"\\n\"\.join\(lines\)", text, re.DOTALL)
+    if not m:
+        return None
+    return m.group(0)
+
+
 def parse_idf_provides(text: str) -> dict[str, list[str]]:
     """Extract provides id → tested_by list."""
     provides = {}
@@ -428,6 +435,34 @@ def check_sdlc_init_directories(drift: Drift, init_text: str):
         drift.add("SDLC Init", f"DIRECTORIES missing required entries: {', '.join(missing)}")
 
 
+def check_sdlc_init_templates(drift: Drift, init_text: str):
+    block = parse_intent_template_block(init_text)
+    if not block:
+        drift.add("SDLC Init", "intent_template definition missing or unparsable")
+        return
+    required_snippets = [
+        "intent:",
+        "id:",
+        "version:",
+        "schema_version:",
+        "intent_type:",
+        "declares:",
+        "current_reality:",
+        "scope:",
+        "priority:",
+        "status:",
+        "confidence:",
+        "owner:",
+        "origin:",
+        "serves:",
+        "dependencies:",
+        "transition_log:",
+    ]
+    missing = [s for s in required_snippets if s not in block]
+    if missing:
+        drift.add("SDLC Init", f"intent_template missing required fields: {', '.join(missing)}")
+
+
 # ── Main ─────────────────────────────────────────────────────────
 
 def main():
@@ -498,6 +533,10 @@ def main():
     # ── 9. SDLC init directories ─────────────────────────────────
     print("Checking SDLC init directories...")
     check_sdlc_init_directories(drift, sdlc_init_text)
+
+    # ── 10. SDLC init intent template ────────────────────────────
+    print("Checking SDLC init intent template...")
+    check_sdlc_init_templates(drift, sdlc_init_text)
 
     # ── Report ───────────────────────────────────────────────────
     print()

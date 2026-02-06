@@ -443,10 +443,20 @@ def ci_validator_script() -> str:
     REQUIRED_CURRENT_REALITY = ["state", "status", "remaining_work", "last_assessed"]
 
     VALID_ENUMS = {
+        "change_type": [
+            "clarification", "correction", "extension",
+            "reclassification", "breaking", "deprecation",
+            "MAJOR", "MINOR", "PATCH",
+        ],
         "intent_type": ["aspirational", "achieved"],
         "priority": ["critical", "high", "medium", "low"],
-        "status": ["proposed", "active", "evolving", "superseded", "residual", "retracted"],
+        "status": [
+            "proposed", "active", "evolving",
+            "superseded", "residual", "retracted",
+            "accepted", "deprecated",
+        ],
         "confidence": ["high", "medium", "low"],
+        "tier": ["core", "deferred"],
         "origin_type": [
             "engineering", "product", "incident", "discovery", "regulatory",
             "organizational", "devops", "ux", "data", "sre", "security",
@@ -560,6 +570,7 @@ def ci_validator_script() -> str:
                 valid_ct = [
                     "clarification", "correction", "extension",
                     "reclassification", "breaking", "deprecation",
+                    "MAJOR", "MINOR", "PATCH",
                 ]
                 if ct and ct not in valid_ct:
                     errors.append(ValidationError(
@@ -673,12 +684,14 @@ def lifecycle_hook_script() -> str:
     # ─── CC-07: Lifecycle State Machine ─────────────────────────────────
 
     VALID_TRANSITIONS = {
-        "proposed":   ["active", "retracted"],
-        "active":     ["evolving", "superseded", "residual"],
+        "proposed":   ["active", "retracted", "accepted"],
+        "active":     ["evolving", "superseded", "residual", "deprecated"],
         "evolving":   ["active", "superseded", "residual"],
         "superseded": ["residual"],
         "residual":   [],          # terminal
         "retracted":  [],          # terminal
+        "accepted":   [],          # terminal (decision-lifecycle)
+        "deprecated": [],          # terminal (decision-lifecycle)
     }
 
 
