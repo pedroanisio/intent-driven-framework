@@ -3,6 +3,7 @@ const YAML = require("yaml");
 const {
   IntentSchema,
   AspirationalIntent,
+  EntitySchemaMap,
   validateTransitionLogIntegrity,
   validateCriterionIdUniqueness,
   validateScopeCoverage,
@@ -20,6 +21,12 @@ const {
   validateCycleConstraintCoverage,
   validateProvidesFcRefs,
   validateProvidesCompleteness,
+  // v0.5.0 validators
+  validateDecisionIntegrity,
+  validateStandaloneTensionIntegrity,
+  validateOriginRecordIntegrity,
+  validateManifestIntegrity,
+  validateStandaloneTransitionIntegrity,
 } = require("./schema");
 const { createFlawStore, Severity, FlawStatus } = require("./store");
 
@@ -50,13 +57,49 @@ function saveStore(store) {
   fs.writeFileSync(STATE_FILE, JSON.stringify(serializable, null, 2));
 }
 
+// ─── ENTITY DETECTION ─────────────────────────────────────────────
+
+const KNOWN_ENTITY_KEYS = ["intent", "decision", "tension", "transition", "origin_record", "repo"];
+
+function detectEntity(parsed, typeFlag) {
+  if (typeFlag) {
+    const entityData = parsed[typeFlag];
+    if (!entityData) {
+      console.error(`❌ Missing top-level '${typeFlag}:' key in YAML (specified by --type flag)`);
+      process.exit(1);
+    }
+    return { entityType: typeFlag, entityData };
+  }
+
+  // Auto-detect from YAML top-level key
+  const entityType = KNOWN_ENTITY_KEYS.find((k) => parsed[k]);
+  if (!entityType) {
+    console.error("❌ Cannot detect entity type. Expected one of: " + KNOWN_ENTITY_KEYS.join(", "));
+    console.error("   Hint: use --type=<entity> to specify explicitly.");
+    process.exit(1);
+  }
+  return { entityType, entityData: parsed[entityType] };
+}
+
 // ─── COLLECT FLAWS ────────────────────────────────────────────────
 
-function collectFlaws(intent) {
+function collectFlaws(entityType, entityData) {
   const flaws = [];
+  const advisories = [];
 
-  // Phase 1: Schema validation
-  const baseResult = IntentSchema.safeParse(intent);
+  // Phase 1: Schema validation via EntitySchemaMap
+  const schema = EntitySchemaMap[entityType];
+  if (!schema) {
+    flaws.push({
+      criterion: "SCHEMA",
+      message: `Unknown entity type: ${entityType}`,
+      severity: Severity.CRITICAL,
+      phase: "schema",
+    });
+    return { flaws, advisories };
+  }
+
+  const baseResult = schema.safeParse(entityData);
   if (!baseResult.success) {
     for (const issue of baseResult.error.issues) {
       const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
@@ -67,82 +110,101 @@ function collectFlaws(intent) {
         phase: "schema",
       });
     }
-  }
-
-  const schemaOk = baseResult.success;
-  if (!schemaOk) {
-    const advisories = [
-      {
-        criterion: "CC-27(b)",
-        message: "Transition summary completeness requires cross-version diff — not automatable in single-file validation",
-      },
-    ];
     return { flaws, advisories };
   }
 
-  // Aspirational refinement
-  if (intent.intent_type === "aspirational") {
-    const aspResult = AspirationalIntent.safeParse(intent);
-    if (!aspResult.success) {
-      for (const issue of aspResult.error.issues) {
-        if (!flaws.some((f) => f.message.includes(issue.message))) {
-          const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
-          flaws.push({
-            criterion: "CC-08",
-            message: `${path}: ${issue.message}`,
-            severity: Severity.CRITICAL,
-            phase: "schema",
-          });
+  // Phase 2: Entity-specific structural validators
+  if (entityType === "intent") {
+    // Aspirational refinement
+    if (entityData.intent_type === "aspirational") {
+      const aspResult = AspirationalIntent.safeParse(entityData);
+      if (!aspResult.success) {
+        for (const issue of aspResult.error.issues) {
+          if (!flaws.some((f) => f.message.includes(issue.message))) {
+            const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
+            flaws.push({
+              criterion: "CC-08",
+              message: `${path}: ${issue.message}`,
+              severity: Severity.CRITICAL,
+              phase: "schema",
+            });
+          }
         }
       }
     }
-  }
 
-  // Phase 2: Structural validators
-  const structuralChecks = [
-    // v0.1.0 validators
-    { fn: validateTransitionLogIntegrity, severity: Severity.ERROR },
-    { fn: validateCriterionIdUniqueness, severity: Severity.ERROR },
-    { fn: validateScopeCoverage, severity: Severity.WARNING },
-    { fn: validateDeferredCriteria, severity: Severity.ERROR },
-    { fn: validateSelfConformance, severity: Severity.CRITICAL },
-    { fn: validateDependsOnRefs, severity: Severity.ERROR },
-    // v0.2.0 validators
-    { fn: validateTensionIntegrity, severity: Severity.ERROR },
-    { fn: validateFalsifiableClaimsIntegrity, severity: Severity.ERROR },
-    { fn: validateFailureModeIntegrity, severity: Severity.WARNING },
-    { fn: validateRetirementConditions, severity: Severity.WARNING },
-    { fn: validateCoOriginConsistency, severity: Severity.WARNING },
-    { fn: validateDeclaresQuality, severity: Severity.ERROR },
-    { fn: validateAffirmationStaleness, severity: Severity.WARNING },
-    // v0.3.0 validators
-    { fn: validateOperationalCycleIntegrity, severity: Severity.ERROR },
-    { fn: validateCycleConstraintCoverage, severity: Severity.ERROR },
-    // v0.4.0 validators
-    { fn: validateProvidesFcRefs, severity: Severity.ERROR },
-    { fn: validateProvidesCompleteness, severity: Severity.WARNING },
-  ];
+    // All 16 existing intent validators (unchanged)
+    const intentChecks = [
+      // v0.1.0
+      { fn: validateTransitionLogIntegrity, severity: Severity.ERROR },
+      { fn: validateCriterionIdUniqueness, severity: Severity.ERROR },
+      { fn: validateScopeCoverage, severity: Severity.WARNING },
+      { fn: validateDeferredCriteria, severity: Severity.ERROR },
+      { fn: validateSelfConformance, severity: Severity.CRITICAL },
+      { fn: validateDependsOnRefs, severity: Severity.ERROR },
+      // v0.2.0
+      { fn: validateTensionIntegrity, severity: Severity.ERROR },
+      { fn: validateFalsifiableClaimsIntegrity, severity: Severity.ERROR },
+      { fn: validateFailureModeIntegrity, severity: Severity.WARNING },
+      { fn: validateRetirementConditions, severity: Severity.WARNING },
+      { fn: validateCoOriginConsistency, severity: Severity.WARNING },
+      { fn: validateDeclaresQuality, severity: Severity.ERROR },
+      { fn: validateAffirmationStaleness, severity: Severity.WARNING },
+      // v0.3.0
+      { fn: validateOperationalCycleIntegrity, severity: Severity.ERROR },
+      { fn: validateCycleConstraintCoverage, severity: Severity.ERROR },
+      // v0.4.0
+      { fn: validateProvidesFcRefs, severity: Severity.ERROR },
+      { fn: validateProvidesCompleteness, severity: Severity.WARNING },
+    ];
 
-  for (const check of structuralChecks) {
-    const errors = check.fn(intent);
-    for (const err of errors) {
-      flaws.push({
-        criterion: err.criterion,
-        message: err.message,
-        severity: check.severity,
-        phase: "structural",
-      });
+    for (const check of intentChecks) {
+      const errors = check.fn(entityData);
+      for (const err of errors) {
+        flaws.push({
+          criterion: err.criterion,
+          message: err.message,
+          severity: check.severity,
+          phase: "structural",
+        });
+      }
     }
-  }
 
-  // CC-27(b) advisory: not automatable in single-file mode
-  // This is a validator limitation note, not a flaw — tracked separately
-  const advisories = [
-    {
+    advisories.push({
       criterion: "CC-27(b)",
       message: "Transition summary completeness requires cross-version diff — not automatable in single-file validation",
-    },
-  ];
+    });
+
+  } else if (entityType === "decision") {
+    const errors = validateDecisionIntegrity(entityData);
+    for (const err of errors) {
+      flaws.push({ criterion: err.criterion, message: err.message, severity: Severity.WARNING, phase: "structural" });
+    }
+
+  } else if (entityType === "tension") {
+    const errors = validateStandaloneTensionIntegrity(entityData);
+    for (const err of errors) {
+      flaws.push({ criterion: err.criterion, message: err.message, severity: Severity.ERROR, phase: "structural" });
+    }
+
+  } else if (entityType === "transition") {
+    const errors = validateStandaloneTransitionIntegrity(entityData);
+    for (const err of errors) {
+      flaws.push({ criterion: err.criterion, message: err.message, severity: Severity.ERROR, phase: "structural" });
+    }
+
+  } else if (entityType === "origin_record") {
+    const errors = validateOriginRecordIntegrity(entityData);
+    for (const err of errors) {
+      flaws.push({ criterion: err.criterion, message: err.message, severity: Severity.WARNING, phase: "structural" });
+    }
+
+  } else if (entityType === "repo") {
+    const errors = validateManifestIntegrity(entityData);
+    for (const err of errors) {
+      flaws.push({ criterion: err.criterion, message: err.message, severity: Severity.ERROR, phase: "structural" });
+    }
+  }
 
   return { flaws, advisories };
 }
@@ -164,20 +226,21 @@ const STATUS_ICON = {
   [FlawStatus.REGRESSED]: "🔁",
 };
 
-function renderReport(store, intent, runId, advisories) {
+function renderReport(store, entityType, entityData, runId, advisories) {
   const state = store.getState();
   const run = state.runs.find((r) => r.id === runId);
   const openFlaws = store.getState().getOpenFlaws();
+  const entityVersion = entityData.version || entityData.to_version || entityData.id || "?";
 
   console.log();
   console.log("╔══════════════════════════════════════════════════════════╗");
   console.log("║  Intent Framework Validator                              ║");
-  console.log(`║  Schema: 0.4.0 │ State: Zustand │ Target: ${(intent.version || "?").padEnd(9)}║`);
+  console.log(`║  Schema: 0.5.0 │ Entity: ${entityType.padEnd(7)}│ Target: ${String(entityVersion).padEnd(9)}║`);
   console.log("╚══════════════════════════════════════════════════════════╝");
 
   console.log();
   console.log(`── Run: ${runId} ─────────────────────────────────`);
-  console.log(`   Version:  ${intent.version}`);
+  console.log(`   Version:  ${entityVersion}`);
   console.log(`   Time:     ${run.timestamp}`);
   console.log(`   Flaws:    ${run.flaw_count} total │ ${run.new_flaws.length} new │ ${run.resolved.length} resolved`);
 
@@ -366,18 +429,29 @@ if (command === "history") {
 
 } else if (!command || command.startsWith("-")) {
   console.log("Usage:");
-  console.log("  node validate.js <path-to-intent.yml>   Validate and track flaws");
-  console.log("  node validate.js history                 Show flaw history");
-  console.log("  node validate.js ack <fingerprint>       Acknowledge a flaw");
-  console.log("  node validate.js wontfix <fp> [reason]   Mark flaw as won't fix");
-  console.log("  node validate.js reset                   Clear flaw state");
+  console.log("  node validate.js <path.yml> [--type=<entity>]   Validate and track flaws");
+  console.log("  node validate.js history                         Show flaw history");
+  console.log("  node validate.js ack <fingerprint>               Acknowledge a flaw");
+  console.log("  node validate.js wontfix <fp> [reason]           Mark flaw as won't fix");
+  console.log("  node validate.js reset                           Clear flaw state");
+  console.log();
+  console.log("Entity types: intent, decision, tension, transition, origin_record, repo");
+  console.log("  Auto-detected from YAML top-level key; --type overrides.");
   console.log();
   console.log("Environment:");
   console.log("  FLAW_STATE=<path>  Custom state file (default: .flaw-state.json)");
   process.exit(0);
 
 } else {
-  const filePath = command;
+  // Find the file path (first arg that doesn't start with --)
+  const filePath = args.find((a) => !a.startsWith("--"));
+  const typeArg = args.find((a) => a.startsWith("--type="));
+  const typeFlag = typeArg ? typeArg.split("=")[1] : null;
+
+  if (!filePath) {
+    console.error("❌ No file path provided");
+    process.exit(1);
+  }
 
   let raw;
   try {
@@ -395,17 +469,14 @@ if (command === "history") {
     process.exit(1);
   }
 
-  const intent = parsed.intent;
-  if (!intent) {
-    console.error("❌ Missing top-level 'intent:' key in YAML");
-    process.exit(1);
-  }
+  const { entityType, entityData } = detectEntity(parsed, typeFlag);
+  const { flaws, advisories } = collectFlaws(entityType, entityData);
 
-  const { flaws, advisories } = collectFlaws(intent);
+  const entityVersion = entityData.version || entityData.to_version || entityData.id || "unknown";
   const store = loadStore();
-  const runId = store.getState().recordRun(intent.version, flaws);
+  const runId = store.getState().recordRun(entityVersion, flaws);
   saveStore(store);
-  renderReport(store, intent, runId, advisories);
+  renderReport(store, entityType, entityData, runId, advisories);
 
   const openFlaws = store.getState().getOpenFlaws();
   const hasCritical = openFlaws.some((f) => f.severity === Severity.CRITICAL);

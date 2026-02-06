@@ -162,9 +162,11 @@ def check_cc04(schema_js_text: str) -> Evidence:
 
     entity_schemas = {
         "intent": r"const\s+IntentSchema\s*=\s*z\.",
-        "transition": r"const\s+(?:Canonical)?TransitionLogEntry\s*=\s*z\.",
-        "tension": r"const\s+Tension\s*=\s*z\.",
-        "manifest": r"const\s+CriteriaCategories\s*=\s*z\.",
+        "transition": r"const\s+StandaloneTransition\s*=\s*z\.",
+        "decision": r"const\s+Decision\s*=\s*z\.",
+        "tension": r"const\s+StandaloneTension\s*=\s*z\.",
+        "origin_record": r"const\s+OriginRecord\s*=\s*z\.",
+        "manifest": r"const\s+Manifest\s*=\s*z\.",
     }
 
     found = set()
@@ -177,8 +179,7 @@ def check_cc04(schema_js_text: str) -> Evidence:
     if missing:
         e.gaps.append(f"missing schemas: {sorted(missing)}")
     else:
-        e.markers.append("all 4 core entity schemas present in Zod")
-    e.markers.append("decision: implicit (serves_intent refs, no standalone schema)")
+        e.markers.append("all 6 entity schemas present in Zod")
 
     e.passed = not missing
     return e
@@ -201,6 +202,8 @@ def check_cc05(root_intent_text: str, schema_js_text: str, lean_text: str) -> Ev
         ("OriginType", "OriginType"),
         ("OriginRelationship", "OriginRelationship"),
         ("Tier", "Tier"),
+        ("TensionStatus", "TensionStatus"),
+        ("BoundaryType", "BoundaryType"),
     ]
 
     all_match = True

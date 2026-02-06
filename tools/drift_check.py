@@ -299,6 +299,8 @@ ENUM_PAIRS = [
     ("Tier", "Tier"),
     ("FalsifiableClaimStatus", "FalsifiableClaimStatus"),
     ("TddIsomorphismStatus", "TddIsomorphismStatus"),
+    ("TensionStatus", "TensionStatus"),
+    ("BoundaryType", "BoundaryType"),
 ]
 
 

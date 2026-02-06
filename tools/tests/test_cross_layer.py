@@ -23,6 +23,8 @@ ENUM_CROSS_REFS = [
     ("Tier", "Tier", "Tier", {}),
     ("FalsifiableClaimStatus", "FalsifiableClaimStatus", "FalsifiableClaimStatus", {}),
     ("TddIsomorphismStatus", "TddIsomorphismStatus", "TddIsomorphismStatus", {}),
+    ("TensionStatus", "TensionStatus", "TensionStatus", {}),
+    ("BoundaryType", "BoundaryType", "BoundaryType", {}),
 ]
 
 

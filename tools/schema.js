@@ -1,13 +1,19 @@
 const z = require("zod");
 
 // ═══════════════════════════════════════════════════════════════════
-// Intent Driven Framework — Zod Schema v0.4.0
+// Intent Driven Framework — Zod Schema v0.5.0
 // ═══════════════════════════════════════════════════════════════════
 //
-// Transition from 0.3.0:
-//   - Added sub-schema: ProvidesItem (id, description, tested_by)
-//   - Added IntentSchema fields: provides (array), design_stance (string)
-//   - Added validators: validateProvidesFcRefs, validateProvidesCompleteness
+// Transition from 0.4.0:
+//   - Extended Status enum with accepted, deprecated (universal lifecycle)
+//   - Added enums: TensionStatus, BoundaryType
+//   - Added sub-schemas: TensionResolution, ManifestDependency, ManifestServes
+//   - Added entity schemas: StandaloneTransition, Decision, StandaloneTension,
+//     OriginRecord, Manifest
+//   - Added EntitySchemaMap for multi-entity auto-detection
+//   - Added validators: validateDecisionIntegrity, validateStandaloneTensionIntegrity,
+//     validateOriginRecordIntegrity, validateManifestIntegrity,
+//     validateStandaloneTransitionIntegrity
 //   - All changes backward-compatible
 //
 // Cumulative from 0.1.0:
@@ -16,6 +22,8 @@ const z = require("zod");
 //   0.3.0: OperationalCycle, OperationalPhase, OperationalConstraint,
 //          TddDivergence, TddIsomorphismStatus
 //   0.4.0: ProvidesItem, provides, design_stance
+//   0.5.0: Multi-entity SDLC validation (Decision, StandaloneTension,
+//          OriginRecord, Manifest, StandaloneTransition)
 //
 // ═══════════════════════════════════════════════════════════════════
 
@@ -29,7 +37,11 @@ const ChangeType = z.enum([
 
 const IntentType = z.enum(["aspirational", "achieved"]);
 const Priority = z.enum(["critical", "high", "medium", "low"]);
-const Status = z.enum(["proposed", "active", "evolving", "superseded", "residual", "retracted"]);
+// v0.5.0: added accepted, deprecated — universal lifecycle for decisions
+const Status = z.enum([
+  "proposed", "active", "evolving", "superseded", "residual", "retracted",
+  "accepted", "deprecated",
+]);
 const Confidence = z.enum(["high", "medium", "low"]);
 const Tier = z.enum(["core", "deferred"]);
 const AchievedCoverage = z.enum(["none", "minimal", "partial", "substantial", "full"]);
@@ -52,6 +64,11 @@ const FalsifiableClaimStatus = z.enum([
 const TddIsomorphismStatus = z.enum([
   "claimed", "structural", "analogical_only",
 ]);
+
+// ─── v0.5.0 ENUMS ──────────────────────────────────────────────
+
+const TensionStatus = z.enum(["active", "resolved", "dormant", "escalated"]);
+const BoundaryType = z.enum(["service", "library", "platform", "gateway"]);
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────
 
@@ -210,6 +227,105 @@ const ProvidesItem = z.object({
   id: z.string().regex(/^provides-[a-z]$/, "Must match provides-X pattern"),
   description: z.string().min(1),
   tested_by: z.array(z.string().regex(/^(FC-\d{2}|CC-\d{2}[a-z]?)$/)).default([]),
+});
+
+// ─── v0.5.0 SUB-SCHEMAS ─────────────────────────────────────────
+// Tension resolution entry — used by StandaloneTension's
+// current_resolution and resolution_history[].
+
+const TensionResolution = z.object({
+  strategy: z.string().min(1),
+  decided: DateString,
+  applies_to: z.array(SemVer).length(2, "applies_to must be a pair of semver versions"),
+  decision_ref: z.string().optional(),
+  superseded: DateString.optional(),
+  reason: z.string().optional(),
+});
+
+const ManifestDependency = z.object({
+  repo: z.string().min(1),
+  intent: z.string().min(1),
+  minimum_version: SemVer,
+});
+
+const ManifestServes = z.object({
+  org_intent: z.string().min(1),
+});
+
+// ─── v0.5.0 ENTITY SCHEMAS ──────────────────────────────────────
+// Standalone entity schemas for SDLC multi-entity validation.
+// The existing Tension (inline) stays as-is for IntentSchema.tensions[].
+
+const StandaloneTransition = z.object({
+  intent_id: z.string().min(1),
+  from_version: SemVer,
+  to_version: SemVer,
+  date: DateString.optional(),
+  author: z.string().min(1),
+  change_type: ChangeType,
+  reason: z.string().min(1),
+  forcing_function: z.string().optional(),
+  what_changed: z.array(z.string().min(1)).optional(),
+  residue: z.string().optional(),
+  ext: z.record(z.string(), z.any()).optional(),
+});
+
+const Decision = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  date: DateString.optional(),
+  status: Status,
+  owner: z.string().min(1),
+  serves_intent: z.string().min(1),
+  intent_version: SemVer,
+  scope: z.array(z.string().min(1)).min(1),
+  refs: z.array(z.string().min(1)).optional(),
+  triggers_transition: z.string().optional(),
+  context: z.string().optional(),
+  decision: z.string().optional(),
+  consequences: z.string().optional(),
+  ext: z.record(z.string(), z.any()).optional(),
+});
+
+const StandaloneTension = z.object({
+  id: z.string().regex(/^T-\d{2,}$/, "Must match T-NN pattern"),
+  between: z.array(z.string().min(1)).length(2, "Tensions must be between exactly two intent refs"),
+  declared: DateString.optional(),
+  status: TensionStatus,
+  description: z.string().min(1),
+  cross_discipline: z.boolean(),
+  disciplines: z.array(z.string().min(1)).min(1),
+  current_resolution: TensionResolution.optional(),
+  resolution_history: z.array(TensionResolution).optional(),
+  resolution_owner: z.string().min(1),
+  escalation_path: z.string().optional(),
+  last_reviewed: DateString.optional(),
+  ext: z.record(z.string(), z.any()).optional(),
+});
+
+const OriginRecord = z.object({
+  id: z.string().min(1),
+  type: OriginType,
+  external_ref: z.string().min(1),
+  external_system: z.string().min(1),
+  date: DateString.optional(),
+  summary: z.string().min(1),
+  generated_intents: z.array(z.string().min(1)).optional(),
+  constrained_intents: z.array(z.string().min(1)).optional(),
+  ext: z.record(z.string(), z.any()).optional(),
+});
+
+const Manifest = z.object({
+  name: z.string().min(1),
+  declares: z.string().min(1),
+  domain: z.string().min(1),
+  boundary_type: BoundaryType,
+  version: SemVer,
+  schema_version: SemVer,
+  serves: z.array(ManifestServes).optional(),
+  depends_on_intents: z.array(ManifestDependency).optional(),
+  plugins: z.string().optional(),
+  ext: z.record(z.string(), z.any()).optional(),
 });
 
 // ─── COMPLETENESS CRITERIA ────────────────────────────────────────
@@ -605,6 +721,101 @@ function validateProvidesCompleteness(intent) {
   return errors;
 }
 
+// ─── v0.5.0 ENTITY SCHEMA MAP ────────────────────────────────────
+// Maps YAML top-level key → Zod schema for auto-detection in validate.js.
+
+const EntitySchemaMap = {
+  intent: IntentSchema,
+  transition: StandaloneTransition,
+  decision: Decision,
+  tension: StandaloneTension,
+  origin_record: OriginRecord,
+  repo: Manifest,
+};
+
+// ─── v0.5.0 STRUCTURAL VALIDATORS ───────────────────────────────
+
+function validateDecisionIntegrity(decision) {
+  const errors = [];
+  if (decision.status === "accepted" && (!decision.context || decision.context.trim().length < 20)) {
+    errors.push({ criterion: "DECISION", message: "accepted decision should have substantive context (>=20 chars)" });
+  }
+  if (decision.status === "accepted" && (!decision.refs || decision.refs.length === 0)) {
+    errors.push({ criterion: "DECISION", message: "accepted decision has no refs (commit SHAs, PR URLs)" });
+  }
+  return errors;
+}
+
+function validateStandaloneTensionIntegrity(tension) {
+  const errors = [];
+  if (tension.status === "active" && !tension.current_resolution && !tension.escalation_path) {
+    errors.push({
+      criterion: "TENSION",
+      message: `${tension.id}: active tension has no current_resolution and no escalation_path`,
+    });
+  }
+  if (tension.status === "resolved" && !tension.current_resolution) {
+    errors.push({
+      criterion: "TENSION",
+      message: `${tension.id}: resolved tension has no current_resolution`,
+    });
+  }
+  if (tension.resolution_history && tension.resolution_history.length > 1) {
+    for (let i = 0; i < tension.resolution_history.length - 1; i++) {
+      const curr = tension.resolution_history[i];
+      const next = tension.resolution_history[i + 1];
+      if (curr.decided && next.decided && curr.decided > next.decided) {
+        errors.push({
+          criterion: "TENSION",
+          message: `${tension.id}: resolution_history not chronological at index ${i}`,
+        });
+      }
+    }
+  }
+  if (tension.cross_discipline && tension.disciplines && tension.disciplines.length < 2) {
+    errors.push({
+      criterion: "TENSION",
+      message: `${tension.id}: cross_discipline=true but fewer than 2 disciplines listed`,
+    });
+  }
+  return errors;
+}
+
+function validateOriginRecordIntegrity(originRecord) {
+  const errors = [];
+  const gen = originRecord.generated_intents || [];
+  const con = originRecord.constrained_intents || [];
+  if (gen.length === 0 && con.length === 0) {
+    errors.push({
+      criterion: "ORIGIN",
+      message: `${originRecord.id}: origin record has no generated_intents or constrained_intents (empty reverse index)`,
+    });
+  }
+  return errors;
+}
+
+function validateManifestIntegrity(manifest) {
+  const errors = [];
+  if (manifest.declares && manifest.declares.trim().length < 30) {
+    errors.push({ criterion: "MANIFEST", message: "manifest declares field is too brief (<30 chars)" });
+  }
+  return errors;
+}
+
+function validateStandaloneTransitionIntegrity(transition) {
+  const errors = [];
+  if (transition.reason && transition.reason.trim().length < 20) {
+    errors.push({ criterion: "TRANSITION", message: "transition reason too brief (<20 chars)" });
+  }
+  if (transition.from_version === transition.to_version) {
+    errors.push({
+      criterion: "TRANSITION",
+      message: `transition from ${transition.from_version} to ${transition.to_version}: versions must differ`,
+    });
+  }
+  return errors;
+}
+
 // ─── EXPORTS ──────────────────────────────────────────────────────
 
 module.exports = {
@@ -612,6 +823,8 @@ module.exports = {
   ChangeType, IntentType, Priority, Status, Confidence, Tier,
   OriginType, OriginRelationship, FalsifiableClaimStatus,
   AchievedCoverage, TddIsomorphismStatus,
+  // v0.5.0 enums
+  TensionStatus, BoundaryType,
   // Primitives
   SemVer, DateString,
   // Sub-schemas
@@ -622,19 +835,29 @@ module.exports = {
   OperationalPhase, OperationalConstraint, TddDivergenceItem,
   TddDivergence, OperationalCycle,
   ProvidesItem,
+  // v0.5.0 sub-schemas
+  TensionResolution, ManifestDependency, ManifestServes,
   // Top-level
   IntentSchema, AspirationalIntent,
-  // v0.1.0
+  // v0.5.0 entity schemas
+  StandaloneTransition, Decision, StandaloneTension, OriginRecord, Manifest,
+  // v0.5.0 entity map
+  EntitySchemaMap,
+  // v0.1.0 validators
   validateTransitionLogIntegrity, validateCriterionIdUniqueness,
   validateScopeCoverage, validateDeferredCriteria,
   validateSelfConformance, validateDependsOnRefs,
-  // v0.2.0
+  // v0.2.0 validators
   validateTensionIntegrity, validateFalsifiableClaimsIntegrity,
   validateFailureModeIntegrity, validateRetirementConditions,
   validateCoOriginConsistency, validateDeclaresQuality,
   validateAffirmationStaleness,
-  // v0.3.0
+  // v0.3.0 validators
   validateOperationalCycleIntegrity, validateCycleConstraintCoverage,
-  // v0.4.0
+  // v0.4.0 validators
   validateProvidesFcRefs, validateProvidesCompleteness,
+  // v0.5.0 validators
+  validateDecisionIntegrity, validateStandaloneTensionIntegrity,
+  validateOriginRecordIntegrity, validateManifestIntegrity,
+  validateStandaloneTransitionIntegrity,
 };
