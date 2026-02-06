@@ -21,9 +21,9 @@ def _api_package_json() -> str:
         "start": "node server.js"
       },
       "dependencies": {
-        "better-sqlite3": "^9.4.3",
         "graphql": "^16.8.1",
         "graphql-yoga": "^5.7.0",
+        "sqlite3": "^5.1.7",
         "zod": "^3.23.8"
       }
     }
@@ -35,13 +35,13 @@ def _api_server_js() -> str:
     const { createServer } = require("node:http");
     const path = require("node:path");
     const fs = require("node:fs");
-    const Database = require("better-sqlite3");
+    const sqlite3 = require("sqlite3").verbose();
     const { createYoga, createSchema } = require("graphql-yoga");
     const { z } = require("zod");
 
     const DB_PATH = process.env.IDF_DB || path.join(__dirname, "..", "..", "data", "idf.db");
     fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-    const db = new Database(DB_PATH);
+    const db = new sqlite3.Database(DB_PATH);
 
     const KINDS = [
       "intent_aspirational",
@@ -54,7 +54,7 @@ def _api_server_js() -> str:
     ];
 
     for (const k of KINDS) {
-      db.exec(`
+      db.run(`
         CREATE TABLE IF NOT EXISTS ${k} (
           id TEXT PRIMARY KEY,
           payload TEXT NOT NULL,
@@ -217,6 +217,7 @@ def _api_server_js() -> str:
       if (kind.startsWith("intent") && payload.intent) return payload.intent;
       if (kind === "tension" && payload.tension) return payload.tension;
       if (kind === "decision" && payload.decision) return payload.decision;
+      if (kind === "transition" && payload.transition) return payload.transition;
       if (kind === "plugin" && payload.plugin) return payload.plugin;
       if (kind === "manifest" && payload.manifest) return payload.manifest;
       return payload;
@@ -248,19 +249,27 @@ def _api_server_js() -> str:
       `,
       resolvers: {
         Query: {
-          list: (_, { kind }) => {
+          list: async (_, { kind }) => {
             if (!KINDS.includes(kind)) throw new Error("Invalid kind");
-            return db.prepare(`SELECT id, payload, created_at FROM ${kind} ORDER BY created_at DESC`).all()
-              .map(r => ({ ...r, kind }));
+            return await new Promise((resolve, reject) => {
+              db.all(`SELECT id, payload, created_at FROM ${kind} ORDER BY created_at DESC`, (err, rows) => {
+                if (err) return reject(err);
+                resolve(rows.map(r => ({ ...r, kind })));
+              });
+            });
           },
-          get: (_, { kind, id }) => {
+          get: async (_, { kind, id }) => {
             if (!KINDS.includes(kind)) throw new Error("Invalid kind");
-            const row = db.prepare(`SELECT id, payload, created_at FROM ${kind} WHERE id = ?`).get(id);
-            return row ? { ...row, kind } : null;
+            return await new Promise((resolve, reject) => {
+              db.get(`SELECT id, payload, created_at FROM ${kind} WHERE id = ?`, [id], (err, row) => {
+                if (err) return reject(err);
+                resolve(row ? { ...row, kind } : null);
+              });
+            });
           }
         },
         Mutation: {
-          upsert: (_, { kind, payload }) => {
+          upsert: async (_, { kind, payload }) => {
             if (!KINDS.includes(kind)) throw new Error("Invalid kind");
             let parsed;
             try {
@@ -271,12 +280,20 @@ def _api_server_js() -> str:
             const normalized = normalizePayload(kind, parsed);
             const data = validate(kind, normalized);
             const id = data.id;
-            db.prepare(
-              `INSERT INTO ${kind} (id, payload) VALUES (?, ?) ` +
-              `ON CONFLICT(id) DO UPDATE SET payload=excluded.payload`
-            ).run(id, JSON.stringify(data));
-            const row = db.prepare(`SELECT id, payload, created_at FROM ${kind} WHERE id = ?`).get(id);
-            return { ...row, kind };
+            await new Promise((resolve, reject) => {
+              db.run(
+                `INSERT INTO ${kind} (id, payload) VALUES (?, ?) ` +
+                `ON CONFLICT(id) DO UPDATE SET payload=excluded.payload`,
+                [id, JSON.stringify(data)],
+                (err) => (err ? reject(err) : resolve())
+              );
+            });
+            return await new Promise((resolve, reject) => {
+              db.get(`SELECT id, payload, created_at FROM ${kind} WHERE id = ?`, [id], (err, row) => {
+                if (err) return reject(err);
+                resolve({ ...row, kind });
+              });
+            });
           }
         }
       }
@@ -288,9 +305,10 @@ def _api_server_js() -> str:
       cors: { origin: "*", methods: ["GET", "POST"] }
     });
     const server = createServer(yoga);
-    const port = process.env.PORT || 4000;
-    server.listen(port, () => {
-      console.log(`GraphQL API running at http://localhost:${port}/graphql`);
+    const port = process.env.PORT || 8081;
+    const host = process.env.HOST || "127.0.0.1";
+    server.listen(port, host, () => {
+      console.log(`GraphQL API running at http://${host}:${port}/graphql`);
     });
     """)
 
@@ -298,7 +316,7 @@ def _api_server_js() -> str:
 def _api_env_example() -> str:
     return dedent("""\
     # GraphQL API config
-    PORT=4000
+    PORT=8081
     IDF_DB=../../data/idf.db
     """)
 
@@ -505,6 +523,7 @@ def _cli_js() -> str:
       if (kind.startsWith("intent") && payload.intent) return payload.intent;
       if (kind === "tension" && payload.tension) return payload.tension;
       if (kind === "decision" && payload.decision) return payload.decision;
+      if (kind === "transition" && payload.transition) return payload.transition;
       if (kind === "plugin" && payload.plugin) return payload.plugin;
       if (kind === "manifest" && payload.manifest) return payload.manifest;
       return payload;
@@ -548,6 +567,28 @@ def _cli_js() -> str:
       for (const r of rows) {
         console.log(`${r.id}  ${r.created_at}`);
       }
+      process.exit(0);
+    }
+
+    if (cmd === "get") {
+      const kind = args.includes("--kind") ? args[args.indexOf("--kind") + 1] : null;
+      if (!kind || !KINDS.includes(kind)) {
+        console.log("Missing or invalid --kind");
+        usage();
+        process.exit(1);
+      }
+      const id = args.includes("--id") ? args[args.indexOf("--id") + 1] : null;
+      if (!id) {
+        console.log("Missing --id");
+        usage();
+        process.exit(1);
+      }
+      const row = db.prepare(`SELECT * FROM ${kind} WHERE id = ?`).get(id);
+      if (!row) {
+        console.log(`Not found: ${kind} ${id}`);
+        process.exit(1);
+      }
+      console.log(JSON.stringify(JSON.parse(row.payload), null, 2));
       process.exit(0);
     }
 
@@ -863,6 +904,7 @@ def _web_schema_js() -> str:
       if (kind.startsWith("intent") && payload.intent) return payload.intent;
       if (kind === "tension" && payload.tension) return payload.tension;
       if (kind === "decision" && payload.decision) return payload.decision;
+      if (kind === "transition" && payload.transition) return payload.transition;
       if (kind === "plugin" && payload.plugin) return payload.plugin;
       if (kind === "manifest" && payload.manifest) return payload.manifest;
       return payload;
@@ -943,11 +985,13 @@ def _web_schema_js() -> str:
           };
         case "transition":
           return {
-            id: "transition-001",
-            from_version: "1.0.0",
-            to_version: "1.1.0",
-            change_type: "MINOR",
-            summary: "Added field"
+            transition: {
+              id: "transition-001",
+              from_version: "1.0.0",
+              to_version: "1.1.0",
+              change_type: "MINOR",
+              summary: "Added field"
+            }
           };
         case "plugin":
           return {
@@ -984,7 +1028,7 @@ def _web_api_js() -> str:
     return dedent("""\
     import { GraphQLClient, gql } from "graphql-request";
 
-    const endpoint = import.meta.env.VITE_API_URL || "http://localhost:4000/graphql";
+    const endpoint = import.meta.env.VITE_API_URL || "http://localhost:8081/graphql";
     const client = new GraphQLClient(endpoint);
 
     export async function listRecords(kind) {

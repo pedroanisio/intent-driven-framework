@@ -760,8 +760,8 @@ except ImportError:
 
 
 def bump_level(old, new):
-    o = [int(x) for x in old.split(".")]
-    n = [int(x) for x in new.split(".")]
+    o = [int(x) for x in old.split("-")[0].split(".")]
+    n = [int(x) for x in new.split("-")[0].split(".")]
     if n[0] > o[0]:
         return "MAJOR"
     elif n[1] > o[1]:
@@ -773,7 +773,7 @@ def check(tensions_dir, intent_id, old_ver, new_ver):
     level = bump_level(old_ver, new_ver)
     results = []
 
-    for path in glob.glob(f"{tensions_dir}/**/*.yml", recursive=True):
+    for path in glob.glob(f"{tensions_dir}/**/*.yml", recursive=True) + glob.glob(f"{tensions_dir}/**/*.yaml", recursive=True):
         try:
             doc = yaml.safe_load(Path(path).read_text())
         except Exception:
@@ -852,7 +852,7 @@ except ImportError:
 
 def lookup(intents_dir, query_path):
     matches = []
-    for filepath in glob.glob(f"{intents_dir}/**/*.yml", recursive=True):
+    for filepath in glob.glob(f"{intents_dir}/**/*.yml", recursive=True) + glob.glob(f"{intents_dir}/**/*.yaml", recursive=True):
         try:
             doc = yaml.safe_load(Path(filepath).read_text())
         except Exception:

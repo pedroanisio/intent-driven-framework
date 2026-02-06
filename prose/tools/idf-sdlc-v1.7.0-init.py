@@ -132,6 +132,7 @@ def load_plugins_from_directory(plugin_dir: str) -> int:
             mod = importlib.util.module_from_spec(spec)
             # Inject registry into module namespace before exec
             mod.PLUGIN_REGISTRY = PLUGIN_REGISTRY
+            mod.PluginRegistration = PluginRegistration
             spec.loader.exec_module(mod)
             count += 1
         except Exception as e:
