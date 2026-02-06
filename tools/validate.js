@@ -69,6 +69,17 @@ function collectFlaws(intent) {
     }
   }
 
+  const schemaOk = baseResult.success;
+  if (!schemaOk) {
+    const advisories = [
+      {
+        criterion: "CC-27(b)",
+        message: "Transition summary completeness requires cross-version diff — not automatable in single-file validation",
+      },
+    ];
+    return { flaws, advisories };
+  }
+
   // Aspirational refinement
   if (intent.intent_type === "aspirational") {
     const aspResult = AspirationalIntent.safeParse(intent);

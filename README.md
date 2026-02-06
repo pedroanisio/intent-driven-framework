@@ -59,7 +59,8 @@ The isomorphism is a design commitment, not yet a proven property. See FC-07 in 
 │   ├── intent-manifesto-v1.6.1.yml  # 28 completeness criteria
 │   └── intent-driven-framework-definition.yml  # Root intent declaration
 ├── lean/
-│   ├── IntentDrivenFramework.lean   # Lean 4 proofs (12 CC kernel-checked)
+│   ├── IntentDrivenFramework.lean   # Lean 4 proofs (10 CC kernel-checked)
+│   ├── lakefile.lean
 │   └── lean-toolchain
 ├── tools/
 │   ├── validate.js                  # Zod schema validation
@@ -110,7 +111,7 @@ Zod checks that every YAML file is structurally valid: correct field names, type
 cd lean && lake build
 ```
 
-12 completeness criteria verified by the Lean 4 kernel: lifecycle transition validity, SemVer rules, chain traversability, tension model structure. These are properties of the model, not the prose. If a proof breaks, the model's structural commitments have changed.
+10 completeness criteria verified by the Lean 4 kernel (CC-04, CC-05, CC-06, CC-07, CC-08, CC-08b, CC-18, CC-23, CC-25, CC-27) plus structural properties for the operational cycle, provides-FC cross-references, and governance compliance. These are properties of the model, not the prose. If a proof breaks, the model's structural commitments have changed.
 
 ### Stage 3 — Self-Conformance Tests
 
@@ -164,7 +165,7 @@ echo "═══ All automated stages green ═══"
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Lean 4          │  12 CC  │  Kernel-checked         │
+│  Lean 4          │  10 CC  │  Kernel-checked         │
 ├──────────────────┼─────────┼─────────────────────────┤
 │  NLP validator   │  13 CC  │  Semantic entailment    │
 ├──────────────────┼─────────┼─────────────────────────┤
@@ -267,7 +268,7 @@ node tools/validate.js && \
 
 ## Falsifiable Claims
 
-The framework makes seven falsifiable claims. If any is falsified, the intent must evolve or be retracted.
+The framework makes eight falsifiable claims. If any is falsified, the intent must evolve or be retracted.
 
 | ID | Claim | Status |
 |----|-------|--------|
@@ -278,6 +279,7 @@ The framework makes seven falsifiable claims. If any is falsified, the intent mu
 | FC-05 | The framework is self-contained for adoption | `unverified` |
 | FC-06 | Semantic versioning communicates governance-relevant impact | `supported_in_theory` |
 | FC-07 | Red/Green/Refactor is operationally isomorphic to TDD | `supported_in_theory` |
+| FC-08 | Tensions between intents are made explicit and their resolution is tracked | `supported` |
 
 ---
 

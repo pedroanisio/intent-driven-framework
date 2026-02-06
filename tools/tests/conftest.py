@@ -17,7 +17,7 @@ def pytest_addoption(parser):
         help="Path to the manifesto markdown file",
     )
     parser.addoption(
-        "--spec", default=str(Path(__file__).parent.parent.parent / "prose" / "intent-spec.md"),
+        "--spec", default=str(Path(__file__).parent.parent.parent / "prose" / "intent-spec-core.md"),
         help="Path to the spec markdown file",
     )
     parser.addoption(
