@@ -1,0 +1,741 @@
+intent:
+  id: intent-framework
+  version: 2.0.0
+  schema_version: 0.1.0
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DECLARATION: What the Intent Framework IS
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  declares: >
+    The Intent Framework provides a universal model for making purpose explicit,
+    versioned, and verifiable in any system where decisions are made in service
+    of goals that degrade, drift, or become invisible as people and context
+    change. Intent is a first-class entity: structured, addressable, versioned,
+    and versionable. The framework applies to software codebases, product
+    strategy, regulatory compliance, organizational governance, AI agent
+    boundaries, and any other domain carrying purpose and undergoing evolution.
+
+  intent_type: aspirational
+  status: proposed
+  confidence: medium
+  achieved_coverage: none
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 1: CORE PRINCIPLES (CC-03: Principles with rationale)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  core_principles:
+    - principle: "Intent is primary"
+      rationale: >
+        Intent is not derived from artifacts, decisions, or past history.
+        It has its own existence, authority, and lifecycle. Decisions serve
+        intent. Artifacts implement decisions. Intent governs both.
+
+    - principle: "Intent evolves and its evolution is tracked"
+      rationale: >
+        Intent is not static. As organizations learn, domains change, and scale
+        introduces new forces, intent must shift. This evolution is captured
+        not just as the current state but as a transition log: what changed,
+        why, what forced it, what residue the former intent left behind.
+
+    - principle: "Intent has two modes: achieved and aspirational"
+      rationale: >
+        Not all intent describes current state. Some describes what should
+        become. This distinction is liberating: you can declare aspirational
+        intent before understanding the existing system. The gap between
+        achieved and aspirational is the work to be done.
+
+    - principle: "Intent follows Semantic Versioning"
+      rationale: >
+        Intent changes are not equal. PATCH means the intent is the same,
+        expressed more clearly. MINOR means the intent has extended in a
+        backward-compatible way. MAJOR means fundamental reorientation.
+        Version numbers communicate the nature of change.
+
+    - principle: "Intent carries tensions and resolution strategies"
+      rationale: >
+        Organizational tensions (growth vs. stability, performance vs.
+        correctness) are real constraints. Making them explicit and assigning
+        resolution owners prevents re-litigation and preserves decisions.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 2: ENTITY SCHEMAS (CC-04: Entity schemas complete)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  entity_schemas:
+    intent:
+      description: "A declaration of what a system intends to be or maintain."
+      required_fields:
+        - id (string, stable, never changes)
+        - version (semantic version: MAJOR.MINOR.PATCH)
+        - declares (string, precise natural language statement)
+        - scope (list of domain-specific references)
+      optional_fields:
+        - priority (critical | high | medium | low)
+        - status (lifecycle state)
+        - intent_type (achieved | aspirational)
+        - current_reality (for aspirational intents: assessed gap)
+        - achieved_coverage (none | minimal | partial | substantial | full)
+        - tensions (intents this is in active tension with)
+        - serves (parent intents this supports)
+        - supersedes (intents this replaced)
+        - origin (provenance: type, ref, relationship)
+        - owner (who is accountable)
+        - confidence (high | medium | low)
+        - needs_verification (boolean)
+        - created (datetime)
+        - last_affirmed (datetime)
+        - ext (domain-specific extensions)
+
+    transition:
+      description: "A record of how an intent changed from one version to another."
+      required_fields:
+        - intent_id (which intent changed)
+        - from_version (semver)
+        - to_version (semver)
+        - date (when it changed)
+        - author (who made the change)
+        - change_type (clarification | correction | extension | breaking | deprecation)
+        - reason (why it changed)
+        - forcing_function (what prompted it)
+      optional_fields:
+        - summary (brief change description)
+        - pre_transition_verification (what was checked before changing)
+        - breaking_changes (if MAJOR: what breaks)
+
+    tension:
+      description: "A declared conflict between two or more intents."
+      required_fields:
+        - ref (identifier for this tension)
+        - description (how they conflict)
+        - resolution_strategy (how the tradeoff is being made)
+        - resolution_owner (who decides when there's deadlock)
+      optional_fields:
+        - severity (critical | high | medium | low)
+        - status (active | mitigated | resolved)
+        - last_revisited (datetime)
+
+    decision:
+      description: "A choice made in service of one or more intents."
+      required_fields:
+        - id (identifier)
+        - date (when decided)
+        - intents_served (which intent(s) this implements)
+      optional_fields:
+        - rationale (why this decision)
+        - alternatives_considered (what else we thought about)
+        - tradeoffs (what we gave up)
+
+    repo:
+      description: "The self-model: where intent blocks for this system live."
+      required_fields:
+        - root_path (where to find intent declarations)
+        - format (yaml | json | other)
+        - discovery_pattern (how to find intent blocks)
+      optional_fields:
+        - version_control (git, etc.)
+        - CI_integration (how verification runs)
+        - ownership (who maintains the repo)
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 3: CLOSED ENUMS (CC-05: Every enum is closed and finite)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  enums:
+    status:
+      description: "The lifecycle state of an intent."
+      values:
+        - proposed      # declared but not yet active
+        - active        # current and enforced
+        - evolving      # active but undergoing intentional change
+        - superseded    # replaced by a successor intent
+        - residual      # no longer active; kept for reference
+        - retracted     # withdrawn before reaching active; terminal
+
+    intent_type:
+      description: "Whether an intent describes current state or desired future."
+      values:
+        - achieved       # what the system currently intends
+        - aspirational   # what we want the system to intend
+
+    priority:
+      description: "Relative importance of this intent."
+      values:
+        - critical  # failure is a system-level risk
+        - high      # significant impact; address in current cycle
+        - medium    # moderate impact; address when adjacent work touches scope
+        - low       # minor impact; address opportunistically
+
+    confidence:
+      description: "How well-understood is this intent."
+      values:
+        - high    # well-understood and stable
+        - medium  # directionally correct but may evolve
+        - low     # exploratory or uncertain
+
+    change_type:
+      description: "The nature of change from one version to the next."
+      values:
+        - clarification      # rewording with no semantic change
+        - correction         # fixing inconsistencies or errors
+        - extension          # additive new content; backward-compatible
+        - reclassification   # tier or category move without changing the intent
+        - breaking           # backward-incompatible change to existing intent
+        - deprecation        # marking an intent for removal
+
+    achieved_coverage:
+      description: "How much of an intent's commitments have been implemented."
+      values:
+        - none         # intent declared but no implementation exists
+        - minimal      # token implementation; intent barely addressed
+        - partial      # some commitments met; others outstanding
+        - substantial  # most commitments met; edge cases remain
+        - full         # all commitments met and verified
+
+    origin_type:
+      description: "Where this intent came from."
+      values:
+        - engineering       # from engineering practice or architecture
+        - product           # from product requirement
+        - incident          # from incident response or postmortem
+        - discovery         # from exploratory or research activity
+        - regulatory        # from compliance or regulatory requirement
+        - organizational    # from organizational policy or restructuring
+        - devops            # from infrastructure or deployment practice
+        - ux                # from user experience research or design
+        - data              # from data architecture or analytics
+        - sre               # from site reliability or observability
+        - security          # from security audit or threat model
+
+    origin_relationship:
+      description: "How the intent relates to its origin source."
+      values:
+        - derived_from      # intent was derived from the referenced source
+        - motivated_by      # intent was motivated by but not directly derived
+        - constrained_by    # intent exists because of a constraint from source
+        - triggered_by      # intent was triggered by a specific event
+        - discovered_in     # intent was discovered during work on source
+
+    forcing_function:
+      description: "What external force prompted a transition."
+      values:
+        - incident          # incident or outage forced the change
+        - requirement       # new requirement from business/compliance
+        - scaling           # scale introduced new constraints
+        - organizational    # org change (team restructure, merger, etc.)
+        - research          # research or learning prompted the change
+        - other             # something else (describe in reason)
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 4: LIFECYCLE STATE MACHINE (CC-07: Lifecycle complete)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  lifecycle:
+    description: >
+      An intent follows a state machine with clearly defined transitions.
+      Terminal states are SUPERSEDED, RESIDUAL, and RETRACTED.
+
+    states:
+      - proposed    # Starting state for new intents
+      - active      # Governing intents currently enforced
+      - evolving    # Intents undergoing intentional change
+      - superseded  # Replaced by a successor intent (terminal)
+      - residual    # Legacy intents kept for reference (terminal)
+      - retracted   # Withdrawn as mistaken (terminal)
+
+    allowed_transitions:
+      proposed → active:
+        rationale: "Declared intent becomes current when adopted."
+      proposed → retracted:
+        rationale: "Declared intent withdrawn if found to be wrong before activation."
+      active → evolving:
+        rationale: "Current intent is under revision."
+      evolving → active:
+        rationale: "Revised intent becomes current."
+      active → superseded:
+        rationale: "Intent is replaced by a successor."
+      active → residual:
+        rationale: "Intent no longer maintained but effects remain."
+      active → retracted:
+        rationale: "Current intent found to be wrong; withdrawn."
+      evolving → superseded:
+        rationale: "Revised intent is replaced before completion."
+
+    invariants:
+      - "SUPERSEDED, RESIDUAL, RETRACTED are terminal; no outgoing transitions."
+      - "All states are reachable from PROPOSED (proof: see transition log)."
+      - "Terminal state indicates reason: superseded → successor intent; residual → legacy; retracted → mistake."
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 5: 28 COMPLETENESS CRITERIA (CC-01 through CC-27)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  completeness_criteria:
+    CC-01:
+      category: philosophy
+      description: "Manifesto states the problem it solves."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-02:
+      category: philosophy
+      description: "Manifesto states the inversion (today's model vs. intent model)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-03:
+      category: philosophy
+      description: "Core principles named, numbered, and explained with rationale."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-04:
+      category: model
+      description: "Every first-class entity (intent, transition, decision, tension, repo) has a complete schema."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-05:
+      category: model
+      description: "Every enum field has all valid values listed and closed."
+      verifiable_by: [pytest, lean, regex, zod]
+      tier: core
+
+    CC-06:
+      category: model
+      description: "Relationships are bidirectionally defined (e.g., serves/served_by)."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-07:
+      category: model
+      description: "Lifecycle is a valid state machine (no dead states, terminals terminal, all reachable)."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-08:
+      category: model
+      description: "Achieved and aspirational intents have distinct schemas."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-08a:
+      category: conflict
+      description: "Contradiction between intents maps to supersession strategy."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-08b:
+      category: conflict
+      description: "Pre-transition resolution checks for contradictions; MAJOR blocks on unresolved."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-08c:
+      category: conflict
+      description: "Scope overlap between intents is detectable and reported."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-09:
+      category: structure
+      description: "Repo structure fully specified (where intent blocks live, discovery pattern)."
+      verifiable_by: [pytest, regex]
+      tier: core
+
+    CC-10:
+      category: structure
+      description: "Reader can create _repo/ from documentation alone."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-11:
+      category: extensibility
+      description: "Plugin architecture with example (how ext: namespace works)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-12:
+      category: extensibility
+      description: "Extension surface semantics (namespaced, no-shadow, graceful ignore)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-13:
+      category: adoption
+      description: "Adoption sequence is ordered and actionable."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-14:
+      category: adoption
+      description: "Legacy intents can be tracked without comprehensive audit."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-15:
+      category: adoption
+      description: "≥3 practical entry points for adopting the framework."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-16:
+      category: self_sufficiency
+      description: "No external concepts required (framework is self-contained)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-17:
+      category: self_sufficiency
+      description: "Daily practice is stated concretely (declare, link, record, check)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-18:
+      category: self_conformance
+      description: "Framework's own intent block conforms to its own model (meta-validation)."
+      verifiable_by: [pytest, lean, zod]
+      tier: core
+
+    CC-19:
+      category: operational
+      description: "Declares falsifiable quality guidance (how to test intent compliance)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-20:
+      category: operational
+      description: "Tooling surface section (hooks, contracts, integration points)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-21:
+      category: operational
+      description: "Adoption ramp for next-touch rule (how new systems onboard)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-23:
+      category: operational
+      description: "Tension staleness contract (MAJOR invalidates; MINOR flags review)."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-25:
+      category: operational
+      description: "Deprecation ceremonies (dependents notified, migration path, grace period)."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-26:
+      category: operational
+      description: "Failure mode catalogue with remediation (triggers, detection, recovery)."
+      verifiable_by: [pytest, nlp, regex]
+      tier: core
+
+    CC-27:
+      category: self_conformance
+      description: "Transition log integrity (contiguous chain, summaries non-empty, change_types canonical)."
+      verifiable_by: [pytest, lean, regex]
+      tier: core
+
+    CC-22:
+      category: deferred
+      description: "Cross-repo discovery protocol (how repos find each other's intents)."
+      verifiable_by: [pytest, regex]
+      tier: deferred
+      promote_when: "Multiple domains with shared intent scopes"
+
+    CC-24:
+      category: deferred
+      description: "Schema evolution semantics (migration rules per schema_version bump)."
+      verifiable_by: [pytest, regex]
+      tier: deferred
+      promote_when: "Schema changes become common across domains"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 6: VERIFICATION ARCHITECTURE (CC-20: Tooling surface)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  verification:
+    description: >
+      Five-layer stack: each layer provides mechanical verification that an
+      intent block satisfies its declared completeness criteria. Not every
+      domain uses all five; every domain uses at least one.
+
+    layer_1:
+      name: "Zod Schema Validator"
+      tool: "validate.js (JavaScript/Node)"
+      purpose: "Structural validation"
+      checks:
+        - "YAML/JSON shape matches schema"
+        - "Required fields present"
+        - "Enums closed (no invalid values)"
+        - "Relationships are bidirectional"
+      covers_criteria: [CC-04, CC-05, CC-06, CC-27]
+      strength: "Mechanical; guaranteed deterministic"
+      applicable_to: "All domains"
+
+    layer_2:
+      name: "Regex Scorer"
+      tool: "score_v150.py (Python)"
+      purpose: "Keyword and structural heuristics"
+      checks:
+        - "Keywords present for each criterion"
+        - "Section existence"
+        - "Count thresholds met"
+      covers_criteria: [CC-01, CC-02, CC-03, CC-09, CC-10, "... all 28"]
+      strength: "Fast, deterministic, no API"
+      weakness: "Fragile on prose-heavy criteria; false positives/negatives"
+      applicable_to: "All domains"
+
+    layer_3:
+      name: "Pytest Suite"
+      tool: "tests/ (Python/pytest)"
+      purpose: "TDD prose validation"
+      checks:
+        - "Criteria→evidence→verdict workflow"
+        - "Prose sections match expected structure"
+        - "Concrete examples present"
+        - "Completeness claims supported by evidence"
+      covers_criteria: [CC-01 through CC-27]
+      strength: "Standard test runner; CI-native; portable"
+      weakness: "Requires prose to be written; test-first discipline"
+      applicable_to: "All domains (though some may adapt heavily)"
+
+    layer_4:
+      name: "NLP Semantic Validator"
+      tool: "nlp_validator.py (Python + Claude API)"
+      purpose: "Semantic entailment and falsifiability"
+      checks:
+        - "Entailment (does passage X entail claim Y?)"
+        - "Falsifiability (can this be tested?)"
+        - "Sufficiency (does explanation cover the criterion?)"
+      covers_criteria: [CC-01, CC-02, CC-03, CC-09, CC-13, CC-15, CC-17, "... 16 total"]
+      strength: "Reads prose like a human; structured verdicts"
+      weakness: "Requires API key; probabilistic; can be expensive"
+      applicable_to: "Domains with written prose; not required for pure YAML/code"
+
+    layer_5:
+      name: "Lean 4 Formal Proofs"
+      tool: "IntentFramework.lean (Lean 4)"
+      purpose: "Algebraic and structural proof"
+      checks:
+        - "Enum closure (exhaustive pattern matching)"
+        - "Lifecycle validity (no dead states, reachability)"
+        - "Relationship inverses"
+        - "State machine properties"
+      covers_criteria: [CC-04, CC-05, CC-06, CC-07, CC-08, CC-08b, CC-18, CC-23, CC-25, CC-27]
+      strength: "Kernel-checked; highest mathematical guarantee"
+      weakness: "Requires Lean expertise; slow to develop; overkill for some domains"
+      applicable_to: "Software (proven); theoretical option for other domains"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 7: DOMAIN INSTANTIATION PATTERN (CC-12: Extension surface semantics)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  domain_instantiation:
+    description: >
+      The Intent Framework is universal. Any domain can instantiate it by
+      specializing three concepts: scope semantics, applicable verification
+      layers, and domain-specific extensions.
+
+    pattern:
+      step_1: "Copy _template/ to _domains/NEW_DOMAIN/"
+      step_2: "Define scope semantics (what scope means in your domain)"
+      step_3: "Choose verification layers (which of 5 apply)"
+      step_4: "Create domain spec (prose/intent-spec-NEW_DOMAIN.md)"
+      step_5: "Create bootstrap YAML (criteria/intent-NEW_DOMAIN-v0.1.0.yml)"
+      step_6: "Add 2-3 example intents (examples/*.yml)"
+      step_7: "Run universal tools (validate, score, test)"
+      step_8: "Document results (README.md)"
+
+    domains:
+      software:
+        version: 1.6.1
+        status: mature
+        scope_semantics: "glob patterns, line numbers, module paths"
+        applicable_layers: [1, 2, 3, 4, 5]
+        proof_status: "Bootstrap complete (9 transitions, kernel-checked)"
+
+      regulatory:
+        version: 0.0.0
+        status: proposed
+        scope_semantics: "clause references, section numbers, regulation codes"
+        applicable_layers: [1, 2, 3, 4]
+        fit: high
+        candidates: "WCAG, GDPR, SOC 2, PCI-DSS"
+
+      product:
+        version: 0.0.0
+        status: proposed
+        scope_semantics: "user journeys, feature areas, product areas"
+        applicable_layers: [1, 2, 4]
+        fit: high
+        candidates: "OKRs, north stars, product metrics"
+
+      ai_agent:
+        version: 0.0.0
+        status: proposed
+        scope_semantics: "agent capabilities, decision boundaries, scopes"
+        applicable_layers: [1, 2, 4]
+        fit: medium
+        critical_unknown: "Can LLM reliably evaluate intent falsifiability?"
+
+      governance:
+        version: 0.0.0
+        status: proposed
+        scope_semantics: "departments, functions, organizational units"
+        applicable_layers: [1, 2]
+        fit: medium
+        critical_unknown: "Is explicit tension declaration politically viable?"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 8: CURRENT REALITY AND REMAINING WORK (CC-08a: gap tracking)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  current_reality:
+    state: >
+      The Intent Framework has been validated against exactly one target:
+      itself. The bootstrap (v1.0.0 → v1.6.1) demonstrates that the core
+      mechanic (declare → version → verify → evolve) works on non-code
+      targets with the same mechanics as code. Nine versioned transitions
+      are kernel-checked by Lean 4. The framework has been restructured
+      to treat software as one domain among many.
+
+    status: >
+      Bootstrap proof: COMPLETE.
+      Domain transfer: UNTESTED.
+      Software domain: v1.6.1 (8/28 criteria incomplete or failing).
+      Candidate domains: 5 identified, 0 pilots started.
+      Verification stack: Partially operational (Zod broken, tests SKIPPED).
+
+    gaps:
+      - "Software domain self-conformance incomplete (CC-18 failures)"
+      - "8 software criteria without complete prose (CC-09, CC-10, etc.)"
+      - "Test suite broken (spec file path mismatch)"
+      - "Verification layers cannot be fully validated (environment issues)"
+      - "Domain transfer thesis unproven (requires 1+ non-software domain to v1.0.0)"
+
+    remaining_work: >
+      1. Complete software domain (CC-09, CC-10, CC-18, CC-19, CC-20, CC-26)
+      2. Verify verification stack is functional
+      3. Instantiate and pilot first candidate domain (recommend: regulatory)
+      4. Validate that universal tools work on non-software intents
+      5. Document domain-transfer evidence: what transferred, what broke
+
+    last_assessed: "2026-02-06"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 9: TENSIONS (CC-23: staleness contract)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  tensions:
+    - ref: depth_vs_breadth
+      description: >
+        The manifesto's credibility depends on specificity (concrete examples,
+        real schemas, CI integration, software-focus). Broadening to all
+        domains risks diluting into generic "governance framework" that
+        applies to everything and commits to nothing.
+
+      resolution_strategy: >
+        Keep the manifesto software-specific. Express domain-agnosticism as
+        this separate intent block with adaptation notes per domain. Let
+        each candidate domain produce its own manifesto fork. Breadth grows
+        through instantiation, not abstraction.
+
+      resolution_owner: "architects"
+
+    - ref: completeness_vs_scope_creep
+      description: >
+        Adding 28 criteria is powerful but risks overwhelming practitioners.
+        More criteria = more complete verification, but higher barrier to
+        adoption. Fewer criteria = easier adoption but less assurance.
+
+      resolution_strategy: >
+        Core 28 criteria are non-negotiable; deferred tier (CC-22, CC-24)
+        tracked but not blocking v1-completeness. Domains can add domain-
+        specific criteria without modifying core. Extension surface enables
+        specialization without overhead.
+
+      resolution_owner: "architects"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 10: WHAT THE BOOTSTRAP PROVED vs UNPROVEN
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  proven_by_bootstrap:
+    - "Core mechanic (declare → version → check → evolve) works on non-code targets"
+    - "Achieved/aspirational distinction provides practical entry point for legacy systems"
+    - "Tension model surfaces real tradeoffs (completeness vs. scope creep proven this intent block)"
+    - "Transition log captures honest evolution history (9 transitions, kernel-checked)"
+    - "Mechanical verification is possible when declares is falsifiable"
+    - "Graduated verification works (not all criteria need all 5 layers)"
+    - "Criteria-first TDD workflow enforces rigor (declare criterion → write test → write prose)"
+    - "0.x.x confidence with needs_verification:true is a productive starting state"
+    - "Spec-to-formalization drift is detectable and fixable within the model (v1.6.1 fixed alignment)"
+
+  unproven:
+    - "Model works when verification is human-only (no tooling possible)"
+    - "Tension declaration is politically viable in non-engineering orgs"
+    - "Resolution_owner assignment works across organizational power structures"
+    - "Model adds value when target domain changes faster than version cycles"
+    - "Extension surface (plugins) is useful outside software toolchains"
+    - "achieved_coverage enum (none→full) maps meaningfully to non-code domains"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PART 11: EVOLUTION LOG (CC-27: Transition log integrity)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  transition_log:
+    - from: 1.0.0
+      to: 1.6.1
+      summary: "Bootstrap complete: 9 transitions, kernel-checked by Lean 4"
+      change_type: extension
+      reason: >
+        The framework evolved through 9 versions using its own mechanics,
+        discovering and fixing real gaps: CC-05 violations, scope duplication,
+        missing deprecation ceremonies, absent tooling contracts, achieved_coverage
+        placement drift, origin_type enum misalignment.
+
+    - from: 1.6.1
+      to: 2.0.0
+      change_type: extension
+      date: "2026-02-06"
+      author: "architects"
+      reason: >
+        Restructured to treat software as one domain among many. Created
+        _domains/ hierarchy with 5 candidate domains + template. Moved all
+        software-specific files to _domains/software/.
+
+      forcing_function: research
+      summary: >
+        Domain-agnosticism restructuring complete. Software v1.6.1 is now
+        one mature instantiation. 5 candidate domains identified with
+        conceptual frameworks. Template enables low-friction domain creation.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # METADATA
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  priority: critical
+  owner: "architects"
+  needs_verification: true
+  created: "2026-02-06"
+  last_affirmed: "2026-02-06"
+
+  origin:
+    type: engineering
+    ref: "self-referential-bootstrap"
+    relationship: discovered_in
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EXTENSION SURFACE: Domain-specific additions go here
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  ext:
+    research:
+      next_phase: "Phase 2: Complete software domain, verify verification stack"
+      then: "Phase 3: Instantiate first candidate domain (regulatory recommended)"
+      vision: "Every domain reaching v1.0.0 proves domain-agnosticism"
