@@ -54,7 +54,7 @@ intent:
       description: >
         A tension model that makes conflicts between intents explicit,
         owned, and resolvable before they surface as failures
-      tested_by: []    # tested by CC criteria (CC-08a/b/c), not a standalone FC
+      tested_by: [FC-08]
     - id: provides-e
       description: >
         Adoption pathways that do not require comprehensive audit of
@@ -694,6 +694,25 @@ intent:
         structural parallel holds at the specification level. No team
         has tested whether the cycle produces TDD-like constraint
         discipline in practice.
+
+    - id: FC-08
+      claim: "Tensions between intents are made explicit and their resolution is tracked"
+      falsified_when: >
+        Conflicting intents coexist without an explicit resolution
+        strategy, resolution owner, or staleness threshold. If tensions
+        can exist unacknowledged in the system, or if a tension has no
+        documented resolution strategy, the framework fails to make
+        conflicts visible and thus fails to prevent them from surfacing
+        as unexamined incidents rather than governed decisions.
+      status: supported
+      evidence: >
+        Schema defines tensions as a first-class array with required
+        fields: resolution_strategy (with type and rule), resolution_owner,
+        and staleness_threshold_days. The root intent itself declares
+        five tensions (T-01 through T-05) with explicit strategies. Every
+        tension has an owner and staleness threshold. The framework's
+        self-application demonstrates that the tension model is
+        mechanically operable and not merely decorative.
 
   # ─────────────────────────────────────────────────────────────────
   # FAILURE MODES
