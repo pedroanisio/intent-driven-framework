@@ -460,9 +460,9 @@ intent:
 
   verification:
     description: >
-      Five-layer stack: each layer provides mechanical verification that an
+      Four-layer stack: each layer provides mechanical verification that an
       intent block satisfies its declared completeness criteria. Not every
-      domain uses all five; every domain uses at least one.
+      domain uses all four; every domain uses at least one.
 
     layer_1:
       name: "Zod Schema Validator"
@@ -478,19 +478,6 @@ intent:
       applicable_to: "All domains"
 
     layer_2:
-      name: "Regex Scorer"
-      tool: "score_v150.py (Python)"
-      purpose: "Keyword and structural heuristics"
-      checks:
-        - "Keywords present for each criterion"
-        - "Section existence"
-        - "Count thresholds met"
-      covers_criteria: [CC-01, CC-02, CC-03, CC-09, CC-10, "... all 28"]
-      strength: "Fast, deterministic, no API"
-      weakness: "Fragile on prose-heavy criteria; false positives/negatives"
-      applicable_to: "All domains"
-
-    layer_3:
       name: "Pytest Suite"
       tool: "tests/ (Python/pytest)"
       purpose: "TDD prose validation"
@@ -504,7 +491,7 @@ intent:
       weakness: "Requires prose to be written; test-first discipline"
       applicable_to: "All domains (though some may adapt heavily)"
 
-    layer_4:
+    layer_3:
       name: "NLP Semantic Validator"
       tool: "nlp_validator.py (Python + Claude API)"
       purpose: "Semantic entailment and falsifiability"
@@ -517,7 +504,7 @@ intent:
       weakness: "Requires API key; probabilistic; can be expensive"
       applicable_to: "Domains with written prose; not required for pure YAML/code"
 
-    layer_5:
+    layer_4:
       name: "Lean 4 Formal Proofs"
       tool: "IntentFramework.lean (Lean 4)"
       purpose: "Algebraic and structural proof"
@@ -544,11 +531,11 @@ intent:
     pattern:
       step_1: "Copy _template/ to _domains/NEW_DOMAIN/"
       step_2: "Define scope semantics (what scope means in your domain)"
-      step_3: "Choose verification layers (which of 5 apply)"
+      step_3: "Choose verification layers (which of 4 apply)"
       step_4: "Create domain spec (prose/intent-spec-NEW_DOMAIN.md)"
       step_5: "Create bootstrap YAML (criteria/intent-NEW_DOMAIN-v0.1.0.yml)"
       step_6: "Add 2-3 example intents (examples/*.yml)"
-      step_7: "Run general tools (validate, score, test)"
+      step_7: "Run general tools (validate, pytest, nlp_validator)"
       step_8: "Document results (README.md)"
 
     domains:
@@ -556,7 +543,7 @@ intent:
         version: 1.6.1
         status: mature
         scope_semantics: "glob patterns, line numbers, module paths"
-        applicable_layers: [1, 2, 3, 4, 5]
+        applicable_layers: [1, 2, 3, 4]
         proof_status: "Bootstrap complete (9 transitions, kernel-checked)"
 
       regulatory:
@@ -671,7 +658,7 @@ intent:
     - "Tension model surfaces real tradeoffs (completeness vs. scope creep proven this intent block)"
     - "Transition log captures honest evolution history (9 transitions, kernel-checked)"
     - "Mechanical verification is possible when declares is falsifiable"
-    - "Graduated verification works (not all criteria need all 5 layers)"
+    - "Graduated verification works (not all criteria need all 4 layers)"
     - "Criteria-first TDD workflow enforces rigor (declare criterion → write test → write prose)"
     - "0.x.x confidence with needs_verification:true is a productive starting state"
     - "Spec-to-formalization drift is detectable and fixable within the model (v1.6.1 fixed alignment)"
