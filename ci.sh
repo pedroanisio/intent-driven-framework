@@ -7,14 +7,15 @@ set -euo pipefail
 # Each stage gates the next. Fail fast, fail cheap.
 # Later layers assume earlier guarantees hold.
 #
+#   Stage 0  Cross-layer drift      (ms)
 #   Stage 1  Schema validation     (ms)
 #   Stage 2  Lean proofs           (sec)
 #   Stage 3  Self-conformance      (sec)
 #   Stage 4  NLP semantic checks   (sec-min, optional)
 #
 # Usage:
-#   ./ci.sh              # Stages 1-3
-#   ./ci.sh --with-nlp   # Stages 1-4
+#   ./ci.sh              # Stages 0-3
+#   ./ci.sh --with-nlp   # Stages 0-4
 # ═══════════════════════════════════════════════════════════════════
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -58,6 +59,10 @@ run_stage() {
     exit 1
   fi
 }
+
+# ── Stage 0: Cross-Layer Drift Detection ─────────────────────────
+run_stage 0 "Cross-layer drift check" \
+  python3 "$ROOT/tools/drift_check.py"
 
 # ── Stage 1: Schema Validation ───────────────────────────────────
 run_stage 1 "Schema validation" \
