@@ -1,19 +1,19 @@
 intent:
-  id: intent-framework
-  version: 2.0.0
+  id: intent-driven-framework
+  version: 0.0.1
   schema_version: 0.1.0
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # DECLARATION: What the Intent Framework IS
+  # DECLARATION: What the Intent Driven Framework IS
   # ═══════════════════════════════════════════════════════════════════════════
 
   declares: >
-    The Intent Framework provides a universal model for making purpose explicit,
-    versioned, and verifiable in any system where decisions are made in service
-    of goals that degrade, drift, or become invisible as people and context
-    change. Intent is a first-class entity: structured, addressable, versioned,
-    and versionable. The framework applies to software codebases, product
-    strategy, regulatory compliance, organizational governance, AI agent
+    The Intent Driven Framework provides a general model for making purpose
+    explicit, versioned, and verifiable in any system where decisions are made
+    in service of goals that degrade, drift, or become invisible as people and
+    context change. Intent is a first-class entity: structured, addressable,
+    versioned, and versionable. The framework applies to software codebases,
+    product strategy, regulatory compliance, organizational governance, AI agent
     boundaries, and any other domain carrying purpose and undergoing evolution.
 
   intent_type: aspirational
@@ -537,7 +537,7 @@ intent:
 
   domain_instantiation:
     description: >
-      The Intent Framework is universal. Any domain can instantiate it by
+      The Intent Framework is general. Any domain can instantiate it by
       specializing three concepts: scope semantics, applicable verification
       layers, and domain-specific extensions.
 
@@ -548,7 +548,7 @@ intent:
       step_4: "Create domain spec (prose/intent-spec-NEW_DOMAIN.md)"
       step_5: "Create bootstrap YAML (criteria/intent-NEW_DOMAIN-v0.1.0.yml)"
       step_6: "Add 2-3 example intents (examples/*.yml)"
-      step_7: "Run universal tools (validate, score, test)"
+      step_7: "Run general tools (validate, score, test)"
       step_8: "Document results (README.md)"
 
     domains:
@@ -622,7 +622,7 @@ intent:
       1. Complete software domain (CC-09, CC-10, CC-18, CC-19, CC-20, CC-26)
       2. Verify verification stack is functional
       3. Instantiate and pilot first candidate domain (recommend: regulatory)
-      4. Validate that universal tools work on non-software intents
+      4. Validate that general tools work on non-software intents
       5. Document domain-transfer evidence: what transferred, what broke
 
     last_assessed: "2026-02-06"
@@ -689,31 +689,26 @@ intent:
   # ═══════════════════════════════════════════════════════════════════════════
 
   transition_log:
-    - from: 1.0.0
-      to: 1.6.1
-      summary: "Bootstrap complete: 9 transitions, kernel-checked by Lean 4"
-      change_type: extension
-      reason: >
-        The framework evolved through 9 versions using its own mechanics,
-        discovering and fixing real gaps: CC-05 violations, scope duplication,
-        missing deprecation ceremonies, absent tooling contracts, achieved_coverage
-        placement drift, origin_type enum misalignment.
-
-    - from: 1.6.1
-      to: 2.0.0
+    - from: 0.0.0
+      to: 0.0.1
       change_type: extension
       date: "2026-02-06"
       author: "architects"
       reason: >
-        Restructured to treat software as one domain among many. Created
-        _domains/ hierarchy with 5 candidate domains + template. Moved all
-        software-specific files to _domains/software/.
+        Official release: "Intent Driven Framework" v0.0.1. This is the first
+        public version. Previous work (v1.0.0 through v1.6.1 under "Intent
+        Framework") was bootstrap proof-of-concept. Starting fresh with v0.0.1
+        reflects: (1) true pre-alpha status, (2) commitment to domain-agnosticism
+        over software specificity, (3) fresh start with unified architecture
+        (software as one domain among many), (4) self-defining framework using
+        its own intent block as specification.
 
       forcing_function: research
       summary: >
-        Domain-agnosticism restructuring complete. Software v1.6.1 is now
-        one mature instantiation. 5 candidate domains identified with
-        conceptual frameworks. Template enables low-friction domain creation.
+        Bootstrap complete. Self-definition complete. Software v1.6.1 integrated
+        as _domains/software/. 5 candidate domains identified. Domain instantiation
+        template ready. Master intent block (this file) is single source of truth.
+        Release as Intent Driven Framework v0.0.1 - initial public release.
 
   # ═══════════════════════════════════════════════════════════════════════════
   # METADATA

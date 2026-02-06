@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the **canonical instantiation** of the Intent Framework for software engineering. It demonstrates how the universal intent model is specialized for a specific domain: managing intent in codebases, systems, and architectural decisions.
+This is the **canonical instantiation** of the Intent Framework for software engineering. It demonstrates how the general intent model is specialized for a specific domain: managing intent in codebases, systems, and architectural decisions.
 
 ## Status
 
@@ -36,7 +36,7 @@ See [../intent-domain-agnostic-applicability.yml](../intent-domain-agnostic-appl
 ```
 software/
 ├── prose/
-│   ├── intent-spec-software.md    # How software specializes the universal spec
+│   ├── intent-spec-software.md    # How software specializes the general spec
 │   └── examples/
 │       ├── checkout-intent.yml
 │       ├── auth-intent.yml
@@ -83,7 +83,7 @@ Common tensions in software intent:
 - **Performance vs. Correctness** — intent for caching vs. intent for audit trail
 - **Feature velocity vs. Stability** — intent for rapid iteration vs. intent for backward compatibility
 - **Security vs. Usability** — intent for zero-trust architecture vs. intent for frictionless UX
-- **Completeness vs. Scope Creep** — covered in the universal spec; demonstrated in v1.6.1
+- **Completeness vs. Scope Creep** — covered in the general spec; demonstrated in v1.6.1
 
 ### Daily Practice
 
@@ -124,7 +124,7 @@ python3 -m anthropic ...                   # NLP semantic check
 ## Running the Software Domain Tests
 
 ```bash
-# Install universal tools (once)
+# Install general tools (once)
 cd ../../tools && npm install
 
 # Run software domain tests
@@ -144,9 +144,9 @@ python3 ../../tools/score_v150.py \
 npm run validate criteria/intent-software-v1.6.1.yml
 ```
 
-## Relation to Universal Framework
+## Relation to general Framework
 
-The universal framework (`../../prose/intent-spec-core.md`) defines:
+The general framework (`../../prose/intent-spec-core.md`) defines:
 - The data model (intent, transition, decision, tension, repo)
 - The lifecycle (proposed → active → evolving → superseded → residual → retracted)
 - The 28 completeness criteria (CC-01 through CC-27)
@@ -171,8 +171,8 @@ See [../intent-domain-agnostic-applicability.yml](../intent-domain-agnostic-appl
 
 ## References
 
-- **Universal Manifesto**: `../../prose/intent-manifesto.md`
-- **Universal Spec**: `../../prose/intent-spec-core.md`
+- **general Manifesto**: `../../prose/intent-manifesto.md`
+- **general Spec**: `../../prose/intent-spec-core.md`
 - **Software Spec**: `prose/intent-spec-software.md`
 - **Lean Proofs**: `lean/IntentFramework.lean`
 - **Domain-Agnostic Thesis**: `../../intent-domain-agnostic-applicability.yml`

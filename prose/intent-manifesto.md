@@ -54,7 +54,7 @@ Every discipline that shapes a system carries intent that is structurally real, 
 
 In a software system, this means DevOps holds deployment intent, UX holds experience intent, Data holds integrity intent, Security holds boundary intent — each shaping artifacts owned by other disciplines. In an organization, Finance holds fiscal intent, Legal holds compliance intent, Product holds market intent — each constraining the others. In a regulatory body, different divisions hold safety intent, market fairness intent, consumer protection intent — each creating tensions the regulated entities must navigate. In an AI agent system, Safety holds alignment intent, Capability holds task-completion intent, Privacy holds data-handling intent — each binding the agent's behavior from a different angle.
 
-The pattern is universal: multiple disciplines generate intent that crosses ownership boundaries. That is precisely why it must be declared — so the crossing is visible, not discovered in failure.
+The pattern is general: multiple disciplines generate intent that crosses ownership boundaries. That is precisely why it must be declared — so the crossing is visible, not discovered in failure.
 
 No discipline derives from another. Each has its own authority. Intent sits at the table. Every discipline has a seat.
 
@@ -150,7 +150,7 @@ Every governed system maintains a structured, version-controlled self-model that
 - **Where did my intents come from** — the provenance links to external events, requirements, incidents, and expert judgment.
 - **What else do I know about myself** — the extension surface, where domain-specific knowledge attaches to the core model without altering it.
 
-The self-model's physical structure depends on the domain. In a codebase, it is a directory in the repository. In an agent system, it may be a structured configuration alongside the agent's tool definitions. In an organizational governance system, it may be a shared document store. The seven questions are universal. How and where they are stored is defined by each domain layer.
+The self-model's physical structure depends on the domain. In a codebase, it is a directory in the repository. In an agent system, it may be a structured configuration alongside the agent's tool definitions. In an organizational governance system, it may be a shared document store. The seven questions are general. How and where they are stored is defined by each domain layer.
 
 This self-model is the foundation for all downstream tooling — verification, visualization, inference, compatibility checking, organizational intent maps. But it exists first as a practice, not a tool.
 
@@ -162,7 +162,7 @@ The core schema defines the minimum viable structure for an intent to be an inte
 
 Everything beyond the core is an **extension**. Extensions are typed, namespaced, and scoped. They add structured data to intents, new validation rules, new relationship types, and lifecycle hooks — without modifying or polluting the core schema. An organization can adopt the core with zero extensions and get value immediately.
 
-The same extensibility operates at the domain level. The core specification defines the universal model. Domain layers — software engineering, AI agent guardrails, regulatory compliance, organizational governance — instantiate the model with domain-specific scope semantics, verification mechanisms, and operational conventions. Each domain layer is an extension of the core, not a modification.
+The same extensibility operates at the domain level. The core specification defines the general model. Domain layers — software engineering, AI agent guardrails, regulatory compliance, organizational governance — instantiate the model with domain-specific scope semantics, verification mechanisms, and operational conventions. Each domain layer is an extension of the core, not a modification.
 
 The core makes one guarantee to both extensions and domain layers: **lifecycle events are reliable**. When intent transitions between states, the core emits well-defined events. The core does not know or care what consumers do. It guarantees only that the events are reliable and the lifecycle is sovereign.
 

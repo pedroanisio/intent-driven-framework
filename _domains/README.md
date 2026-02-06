@@ -4,7 +4,7 @@ This folder contains domain-specific instantiations of the Intent Framework. The
 
 ## Overview
 
-The **universal framework** (root-level `prose/` and universal `tools/`) defines:
+The **general framework** (root-level `prose/` and general `tools/`) defines:
 - The manifesto (philosophy, problem, inversion, principles)
 - The core specification (data model, schema, lifecycle, 28 criteria)
 - The five-layer verification stack (Zod, regex, pytest, NLP, Lean)
@@ -111,7 +111,7 @@ vi prose/intent-spec-your-domain.md        # Domain-specific spec
 vi criteria/intent-your-domain-v0.1.0.yml  # Bootstrap proof
 vi examples/example-intent.yml             # Real-world example
 
-# 3. Test with universal tools
+# 3. Test with general tools
 python3 ../../tools/score_v150.py \
   prose/intent-spec-your-domain.md \
   ../../prose/intent-spec-core.md \
@@ -198,14 +198,14 @@ All others are at **v0.0.0** (not started).
 2. Read the domain's README.md
 3. Copy _template/ and start filling it out
 4. Create 2-3 example intents
-5. Test with universal tools
+5. Test with general tools
 6. Iterate until self-consistent
 
 ### To Contribute
 - Submit domain instantiations (draft or complete)
 - Report what transferred vs. what broke
 - Document lessons learned
-- Challenge the universal thesis where it fails
+- Challenge the general thesis where it fails
 
 ---
 
@@ -222,7 +222,7 @@ All others are at **v0.0.0** (not started).
 - `_domains/_template/prose/intent-spec-DOMAIN.md` (spec template)
 - `_domains/_template/criteria/intent-DOMAIN-v0.1.0.yml` (criteria template)
 
-**To understand the universal framework:**
+**To understand the general framework:**
 - `../prose/intent-manifesto.md` (philosophy)
 - `../prose/intent-spec-core.md` (data model)
 - `../VERIFICATION.md` (five-layer verification)

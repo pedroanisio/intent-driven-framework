@@ -24,7 +24,7 @@ Intent declarations become the **semantic contract** between the system designer
 
 ## Falsifiability in the Agent Context
 
-The universal spec requires **falsifiable** intent declarations:
+The general spec requires **falsifiable** intent declarations:
 
 ```yaml
 declares: "Agent never executes DELETE operations on user data"

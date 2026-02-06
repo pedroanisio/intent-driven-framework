@@ -10,7 +10,7 @@
 
 Compliance requirements are intents imposed by external authorities. They have:
 - **Versions** — regulatory amendments, notice periods, grace periods
-- **Transitions** — drafting → enforcement → supersession (like the universal lifecycle)
+- **Transitions** — drafting → enforcement → supersession (like the general lifecycle)
 - **Tensions** — compliance cost vs. business agility; safety requirements vs. operational simplicity
 - **Residual artifacts** — processes shaped by rules that were superseded years ago
 - **Deprecation** — sunset provisions with grace periods
@@ -31,7 +31,7 @@ This domain is structurally high-fit for the Intent Framework because the core m
 
 1. **Identify a concrete target** — WCAG (accessibility), GDPR (data privacy), SOC 2 (security audit), PCI-DSS (payment), etc.
 2. **Extract intent declarations** — for each requirement, write a falsifiable intent statement
-3. **Build a criteria set** — adapt the 28 universal criteria for regulatory context
+3. **Build a criteria set** — adapt the 28 general criteria for regulatory context
 4. **Create a manifest** — minimal viable intent repository for the target standard
 5. **Verify the transfer** — does the five-layer stack work on compliance intents?
 
@@ -61,7 +61,7 @@ This domain is structurally high-fit for the Intent Framework because the core m
 2. Choose one standard (suggest: **WCAG 2.1** — smallest, most automatable, concrete)
 3. Extract 5-10 key requirements as intent blocks
 4. Write minimal `intent-regulatory-v0.1.0.yml`
-5. Test with universal tools: validate, score, NLP check
+5. Test with general tools: validate, score, NLP check
 6. Document what transferred vs. what broke
 
 ## Resources

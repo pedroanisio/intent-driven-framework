@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document specifies how the Intent Framework is adapted for the [DOMAIN NAME] domain. It explains the domain-specific interpretations of universal concepts like scope, verification, and tension resolution.
+This document specifies how the Intent Framework is adapted for the [DOMAIN NAME] domain. It explains the domain-specific interpretations of general concepts like scope, verification, and tension resolution.
 
 [Write a 2-3 paragraph introduction explaining why intent matters in your domain.]
 
@@ -12,7 +12,7 @@ This document specifies how the Intent Framework is adapted for the [DOMAIN NAME
 
 ### Scope Definition
 
-**In the universal spec**, scope is abstract: "parts of the system this intent governs."
+**In the general spec**, scope is abstract: "parts of the system this intent governs."
 
 **In DOMAIN**, scope refers to:
 
@@ -54,7 +54,7 @@ The Intent Framework includes five verification layers. Not all apply to every d
 
 ### Tensions in DOMAIN
 
-**In the universal spec**, tensions are cross-cutting conflicts between multiple intents. Resolving them requires a tradeoff and a decision-maker.
+**In the general spec**, tensions are cross-cutting conflicts between multiple intents. Resolving them requires a tradeoff and a decision-maker.
 
 **In DOMAIN**, common tensions include:
 
@@ -84,7 +84,7 @@ The Intent Framework includes five verification layers. Not all apply to every d
 
 ## Part II: Schema Extensions
 
-The universal core schema may be insufficient for your domain. This section defines domain-specific extensions in the `ext:` namespace.
+The general core schema may be insufficient for your domain. This section defines domain-specific extensions in the `ext:` namespace.
 
 [Delete this section if your domain needs no extensions.]
 
@@ -236,7 +236,7 @@ Example for regulatory:
 
 ## References
 
-- **Universal Manifesto**: `../../prose/intent-manifesto.md`
-- **Universal Spec**: `../../prose/intent-spec-core.md`
+- **general Manifesto**: `../../prose/intent-manifesto.md`
+- **general Spec**: `../../prose/intent-spec-core.md`
 - **Verification Architecture**: `../../VERIFICATION.md`
 - **Domain-Agnostic Thesis**: `../../intent-domain-agnostic-applicability.yml`

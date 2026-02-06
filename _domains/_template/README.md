@@ -18,7 +18,7 @@ sed -i 's/DOMAIN/YOUR_DOMAIN/g' prose/*.md criteria/*.yml examples/*.md
 
 # 4. Customize each file (see sections below)
 
-# 5. Test with universal tools
+# 5. Test with general tools
 python3 ../../tools/score_v150.py \
   prose/intent-spec-YOUR_DOMAIN.md \
   ../../prose/intent-spec-core.md \
@@ -31,7 +31,7 @@ python3 ../../tools/score_v150.py \
 
 ### Phase 1: Foundation (Week 1)
 
-- [ ] Create `prose/intent-spec-DOMAIN.md` — how your domain specializes the universal spec
+- [ ] Create `prose/intent-spec-DOMAIN.md` — how your domain specializes the general spec
 - [ ] Create `criteria/intent-DOMAIN-v0.1.0.yml` — your domain's bootstrap proof
 - [ ] Document scope semantics — how "scope" works in your domain
 - [ ] Identify verification layers — which of the five layers apply?
@@ -44,7 +44,7 @@ python3 ../../tools/score_v150.py \
 
 ### Phase 3: Validation (Week 3)
 
-- [ ] Run universal tools: validate, score, NLP check
+- [ ] Run general tools: validate, score, NLP check
 - [ ] Address validation errors
 - [ ] Document what transferred vs. what broke
 
@@ -52,7 +52,7 @@ python3 ../../tools/score_v150.py \
 
 - [ ] Write domain-specific README explaining applicability
 - [ ] Document future work / unproven claims
-- [ ] Link back to universal framework
+- [ ] Link back to general framework
 
 ---
 
@@ -60,7 +60,7 @@ python3 ../../tools/score_v150.py \
 
 ### 1. `prose/intent-spec-DOMAIN.md`
 
-**Purpose**: Explain how your domain specializes the universal spec.
+**Purpose**: Explain how your domain specializes the general spec.
 
 **Template sections**:
 ```markdown
@@ -69,10 +69,10 @@ python3 ../../tools/score_v150.py \
 ## Overview
 [Brief description of the domain and why intent matters in it]
 
-## Differences from Universal Core
+## Differences from general Core
 
 ### Scope Semantics
-In the universal spec, scope is abstract: "parts of the system this intent governs."
+In the general spec, scope is abstract: "parts of the system this intent governs."
 In DOMAIN, scope is: [describe your domain's scope concept]
 
 Examples:
@@ -82,7 +82,7 @@ Examples:
 - Governance: `sales-department` (organizational unit)
 
 ### Verification Layers
-The universal framework includes five verification layers:
+The general framework includes five verification layers:
 1. Zod Schema
 2. Regex Scorer
 3. Pytest Suite
@@ -96,7 +96,7 @@ Example:
 - AI Agent: layers 1, 2, 4 (real-time evaluation; tests not applicable)
 
 ### Tensions in DOMAIN
-The universal spec defines tensions as cross-domain conflicts.
+The general spec defines tensions as cross-domain conflicts.
 In DOMAIN, common tensions include: [list domain-specific tensions]
 
 Example:
@@ -107,7 +107,7 @@ Example:
 
 ## Schema Extensions
 
-Does your domain need fields beyond the universal core?
+Does your domain need fields beyond the general core?
 
 ```yaml
 ext:
@@ -258,7 +258,7 @@ intent:
 
 ### Defining Scope
 
-The universal spec says scope is "parts of the system this intent governs."
+The general spec says scope is "parts of the system this intent governs."
 
 In your domain, scope is domain-specific:
 
@@ -296,7 +296,7 @@ Not every domain needs all five layers. Choose what makes sense:
 
 ## Testing Your Domain Instantiation
 
-Once you've created the files, run the universal tools:
+Once you've created the files, run the general tools:
 
 ```bash
 # 1. Schema validation (Layer 1)
@@ -321,7 +321,7 @@ python3 ../../tools/nlp_validator.py \
 
 After completing your pilot, document:
 
-1. **What transferred** — Which parts of the universal spec worked without modification?
+1. **What transferred** — Which parts of the general spec worked without modification?
 2. **What broke** — Which assumptions didn't apply?
 3. **Domain-specific patterns** — What unique structures did your domain need?
 4. **Unproven claims** — What do you still need to test?
@@ -335,6 +335,6 @@ When your domain instantiation is complete:
 
 1. **Update root README** with a link to your domain
 2. **Update VERIFICATION.md** with domain-specific verification status
-3. **Submit feedback** on what the universal spec should change
+3. **Submit feedback** on what the general spec should change
 
 The goal is not perfection — it's **evidence**. Show what works, document what doesn't, and help the framework evolve.

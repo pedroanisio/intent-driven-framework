@@ -2,7 +2,7 @@
 
 ## Instantiating the Core for Codebases
 
-This document defines how the domain-agnostic Intent Framework core is instantiated for software engineering. It specifies scope as file paths, the self-model as a repository directory, verification as CI integration, and provides worked examples from software systems. Read the *Intent Specification — Core* first. This document assumes familiarity with the universal data model.
+This document defines how the domain-agnostic Intent Framework core is instantiated for software engineering. It specifies scope as file paths, the self-model as a repository directory, verification as CI integration, and provides worked examples from software systems. Read the *Intent Specification — Core* first. This document assumes familiarity with the general data model.
 
 ---
 

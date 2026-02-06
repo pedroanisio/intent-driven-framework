@@ -2,7 +2,7 @@
 
 ## Companion to The Intent Manifesto
 
-This document contains the domain-agnostic data model, self-model pattern, and extension surface for the intent model. It is the technical specification — the schemas, the structural conventions, the plugin architecture. Domain layers (software engineering, AI agent guardrails, regulatory compliance, etc.) instantiate this core with domain-specific scope semantics, verification mechanisms, and physical self-model structures. The *Intent Manifesto* establishes the worldview. This document specifies the universal model. If you have not read the manifesto, start there.
+This document contains the domain-agnostic data model, self-model pattern, and extension surface for the intent model. It is the technical specification — the schemas, the structural conventions, the plugin architecture. Domain layers (software engineering, AI agent guardrails, regulatory compliance, etc.) instantiate this core with domain-specific scope semantics, verification mechanisms, and physical self-model structures. The *Intent Manifesto* establishes the worldview. This document specifies the general model. If you have not read the manifesto, start there.
 
 ---
 
@@ -10,7 +10,7 @@ This document contains the domain-agnostic data model, self-model pattern, and e
 
 Intent is structured data. Its shape must be precise enough to be machine-readable, expressive enough to capture real-world complexity, and minimal enough that people will actually write it.
 
-The data model has two layers: a **core** that is universal and stable, and an **extension surface** (`ext`) where domains, organizations, and tools add their own structured data. The core never looks inside `ext`. Tools that understand a specific extension can read it. Tools that don't, skip it. No extension can override core fields.
+The data model has two layers: a **core** that is general and stable, and an **extension surface** (`ext`) where domains, organizations, and tools add their own structured data. The core never looks inside `ext`. Tools that understand a specific extension can read it. Tools that don't, skip it. No extension can override core fields.
 
 ### The Minimal Valid Intent
 
