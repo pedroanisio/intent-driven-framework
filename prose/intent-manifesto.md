@@ -2,7 +2,7 @@
 
 <!-- source: intent.id, intent.version, intent.schema_version -->
 
-**Version 1.3.0** | Schema version 0.4.0
+**Version 1.5.0** | Schema version 0.4.0
 
 ---
 
@@ -12,7 +12,7 @@
 
 This manifesto intends to be a self-contained declaration of the Intent Driven Framework — a purpose governance model that treats intent as a first-class entity: structured, versioned, and verifiable — across any domain where decisions serve goals that degrade, drift, or become invisible over time.
 
-The domain is a parameter: software, policy, strategy, regulation, or the framework's own specification documents. The mechanics of declaring, versioning, tracking, and tension-checking purpose are invariant across these domains. What changes is the scope syntax, the artifact types, and the verification methods. The core does not.
+Domain-invariance is a hypothesis under active testing: the mechanics of declaring, versioning, tracking, and tension-checking purpose are hypothesized to be invariant across domains (software, policy, strategy, regulation, the framework's own specification documents). What changes is the scope syntax, the artifact types, and the verification methods. The core should not — but this claim is tested by accumulating domain cases, not asserted by fiat. The hypothesis is structured in the domain-invariance hypothesis section below.
 
 ---
 
@@ -53,6 +53,32 @@ An operational cycle — Red / Green / Refactor — that governs how intent is d
 <!-- source: intent.design_stance -->
 
 Domain-specific adaptation is achieved through instantiation (domain-specific forks with native scope syntax and verification methods), not generalization (abstracting the core until it commits to nothing). Neither domain of origin is privileged. All are instantiations of the same model.
+
+---
+
+## Domain-Invariance Hypothesis
+
+<!-- source: intent.domain_invariance_hypothesis -->
+
+**Status:** under_test
+
+**Statement:** The core mechanics of intent governance — declaring, versioning, tracking, tension-checking, and evolving purpose — are domain-invariant. Any domain where agents (human or artificial) make decisions that serve goals which degrade, drift, or become invisible over time can be governed by the same data model, lifecycle, and operational cycle. What changes across domains is the scope syntax, artifact types, and verification methods. The core does not change.
+
+### Case 01: Self-application (non-software)
+
+**Domain:** Framework specification documents (prose, YAML, criteria) | **Status:** supported
+
+The root intent declaration governs prose, YAML, and criteria — not software. Six versioned transitions, 28 completeness criteria, Lean proofs, and Zod validation all operate on this non-software target without modification to any core field. Self-referential but structurally valid.
+
+**Limitation:** Self-application is the weakest possible case — designed by the same people who applied it, on an unusually well-suited target.
+
+### Case 02: Criteria bridge (software-scoped to domain-aware)
+
+**Domain:** Completeness criteria system (intent-manifesto-itself) | **Status:** under_test
+
+The criteria intent was created at v1.6.1 with software-scoped declares and scope. The v1.7.0 transition adapts it to serve the domain-invariant root intent. The DIFF between v1.6.1 and v1.7.0 is the empirical evidence: it shows exactly what changes when a software-scoped document adapts to domain-invariant governance. If the diff is small (scope paths, declares wording, relationship declaration), the hypothesis is supported.
+
+**Limitation:** Still an internal case, but involves adapting an existing artifact NOT designed for domain-invariance.
 
 ---
 
@@ -309,6 +335,16 @@ Owner: authors | Last reviewed: 2026-02-06 | Staleness threshold: 90 days
 
 Owner: authors | Last reviewed: 2026-02-06 | Staleness threshold: 180 days
 
+### T-06: Formalization vs. Goodhart's Law (metric gaming)
+
+**Between:**
+- The framework requires intent to be formalized into measurable, falsifiable conditions — this is what makes it verifiable rather than merely aspirational
+- Goodhart's Law: when a measure becomes a target, it ceases to be a good measure — formalizing intent creates exactly the conditions for gaming, where teams optimize the measurable proxy rather than the actual purpose
+
+**Resolution** (policy): The framework acknowledges that formalization creates gaming risk and addresses it through three structural countermeasures: (1) Intent declares purpose in prose (the declares field), not only in metrics — the human-readable commitment remains the authority even when measured proxies are present; (2) The tension model and failure mode model (FM-07) make metric corruption an explicit, governed concern rather than an unacknowledged background risk; (3) The Red/Green boundary is explicitly a threshold judgment by the intent owner, not a binary metric pass/fail — the owner must articulate WHY the intent is satisfied, not merely that the numbers moved. Campbell's Law applies with full force. The framework's defense is not to avoid measurement but to keep the human judgment loop explicit and non-bypassable.
+
+Owner: authors | Last reviewed: 2026-02-06 | Staleness threshold: 180 days
+
 ---
 
 ## Falsifiable Claims
@@ -339,7 +375,7 @@ The declares field makes claims. These are the conditions under which those clai
 
 **Falsified when:** A domain that meets the preconditions (has purpose, evolves over time, suffers from purpose degradation) attempts adoption and the core data model requires fields specific to another domain to function. If scope must be expressed as file globs, or artifacts must be code, or verification must be automated tests, the core has absorbed domain assumptions and the claim fails for any non-software domain.
 
-**Status:** partially_verified | **Evidence:** The framework has been applied to its own specification documents — a non-software target — through six versioned transitions with mechanical verification (28 completeness criteria, Zod schema validation, Lean proofs, regex evidence scoring). Every core field functioned on this target without modification. This constitutes a single non-software proof of concept. It demonstrates mechanic invariance but not breadth of domain applicability. No external domain pilot has been conducted.
+**Status:** hypothesis_under_test | **Evidence:** Domain-invariance is now structured as a testable hypothesis (see domain_invariance_hypothesis) rather than an asserted property. Two cases are active: (1) self-application — the root intent governs non-software targets through six transitions without core field modification; (2) criteria bridge — the v1.6.1 to v1.7.0 adaptation of a software-scoped criteria system to serve the domain-invariant root intent, with the diff as measurable evidence of adaptation cost. The hypothesis is under active testing. Previous evidence remains valid but is now contextualized: it was produced using software-scoped criteria, which means the validation infrastructure itself had a domain bias.
 
 ### FC-05: The framework is self-contained for adoption
 
@@ -363,7 +399,7 @@ The declares field makes claims. These are the conditions under which those clai
 
 **Falsified when:** Conflicting intents coexist without an explicit resolution strategy, resolution owner, or staleness threshold. If tensions can exist unacknowledged in the system, or if a tension has no documented resolution strategy, the framework fails to make conflicts visible.
 
-**Status:** supported | **Evidence:** Schema defines tensions as a first-class array with required fields: resolution_strategy (with type and rule), resolution_owner, and staleness_threshold_days. The root intent declares five tensions (T-01 through T-05) with explicit strategies. Every tension has an owner and staleness threshold.
+**Status:** supported | **Evidence:** Schema defines tensions as a first-class array with required fields: resolution_strategy (with type and rule), resolution_owner, and staleness_threshold_days. The root intent declares six tensions (T-01 through T-06) with explicit strategies. Every tension has an owner and staleness threshold.
 
 ---
 
@@ -420,6 +456,14 @@ Teams declare intents green without updating evidence. achieved_coverage stays a
 **Diagnostic:** Transition logs show version bumps (refactor phase) on intents whose current_reality and achieved_coverage have not been updated since initial declaration. last_affirmed dates advance but gap_assessment text is unchanged.
 
 **Mitigation:** Lint rule: transition log entries of type MINOR or MAJOR on intents whose achieved_coverage has not changed since the prior version should trigger a warning. The operational cycle constraint OC-03 makes this explicit — green must be evidenced, not declared by fiat.
+
+### FM-07: Metric gaming (Goodhart corruption)
+
+Teams optimize for the measurable conditions in their intent declarations rather than the actual purpose the intent describes. achieved_coverage moves from minimal to full, falsifiable_claims show supported status, and current_reality paints a positive picture — but the underlying intent has not been genuinely satisfied. The metrics are gamed rather than earned. This is distinct from FM-06 (green-washing, where evidence is simply not updated) — in metric gaming, the evidence IS updated, but the measurements have been corrupted. Goodhart's Law predicts this outcome whenever intent is formalized into measurable conditions.
+
+**Diagnostic:** Falsifiable claims move to supported status without credible external evidence. achieved_coverage advances on self-assessed metrics that have no independent verification. Intent declarations show textbook-perfect compliance but the governed system exhibits behaviors inconsistent with the declared purpose.
+
+**Mitigation:** Keep the declares field in natural language — it is the authority, not the metrics. Require that Green phase transitions include qualitative owner judgment, not only quantitative measures. Tension T-06 makes this risk explicitly governed. Periodic review of whether measured proxies still correlate with actual purpose. Independent verification for high-stakes intents.
 
 ---
 
@@ -490,6 +534,37 @@ Teams declare intents green without updating evidence. achieved_coverage stays a
 - schema_version: 0.4.0 (provides and design_stance are new top-level fields)
 
 **Residue.** The provides.tested_by cross-references create a new invariant: every provides item should map to at least one FC. provides-d (tension model) currently has tested_by: [FC-08] — but was originally empty. This gap was addressed by referencing FC-08 directly.
+
+### 1.4.0 -> 1.5.0 (MINOR, 2026-02-06)
+
+**Reason.** External feedback identified that domain-invariance was asserted as fact ("the domain is a parameter") but the evidence was produced using software-scoped criteria (v1.6.1). The bootstrap proof is real but narrower than the claim. Honest response: reframe domain-invariance as a testable hypothesis and accumulate cases.
+
+**Forcing function.** The framework's declares field claimed domain-invariance while the validation infrastructure assumed software scope. This is a consistency gap between the framework's claim and the evidence supporting it.
+
+**What changed:**
+- declares: reframed domain-invariance from assertion to hypothesis under active testing
+- Added domain_invariance_hypothesis section with statement, status (under_test), tested_by, and two cases
+- Case-01: self-application (root intent governing non-software targets)
+- Case-02: criteria bridge (v1.6.1 to v1.7.0 adaptation, diff as evidence)
+- FC-04 status: partially_verified to hypothesis_under_test, evidence updated to reference hypothesis structure
+
+**Residue.** The hypothesis has only two internal cases. Neither involves an external adopter. The criteria bridge (case-02) is the stronger test because it adapts an existing artifact not designed for domain-invariance, but it is still internal.
+
+### 1.3.0 -> 1.4.0 (MINOR, 2026-02-06)
+
+**Reason.** An external critical review ("The Intent Driven Framework: A Critical Review of Ambition, Novelty, and Structural Limits") identified three structural gaps: (1) the framework does not cite 30+ years of prior art in goal-oriented requirements engineering, tension management, design rationale capture, and governance cycles; (2) Goodhart's Law risk is unacknowledged — formalizing intent into measurable conditions creates gaming targets; (3) the TDD-based operational cycle does not consider alternative governance cycles (PDCA, double-loop learning) that may be more structurally appropriate.
+
+**Forcing function.** The external critical review is the forcing function. Per OC-01 (Red before Green), the review's findings constitute red intents — declared unsatisfied conditions that mandate specific work. The RED tests in test_v1_4_0_red.py codify these as executable assertions that fail against v1.3.0. The framework practices what it prescribes: constraint first, satisfaction second.
+
+**What changed:**
+- Added intellectual_lineage section citing 6 traditions: GORE/KAOS, Polarity Management & Paradox Theory, Design Rationale Capture (IBIS), Governance Cycles (PDCA/OODA/double-loop), ADRs, and Organizational Strategy Frameworks
+- Each lineage entry includes what_idf_adds — what the framework contributes beyond prior art
+- Added T-06: Formalization vs. Goodhart's Law (metric gaming)
+- Added FM-07: Metric gaming (Goodhart corruption)
+- Added alternative_cycles section to operational_cycle, considering PDCA, double-loop learning, and OODA
+- Added reframe_commitment: the TDD framing is an adoption bridge, not a structural necessity
+
+**Residue.** The intellectual lineage is acknowledged but not exhaustive. The Goodhart tension (T-06) and metric gaming failure mode (FM-07) are declared but untested — no adopter has yet demonstrated whether the framework's countermeasures actually prevent gaming in practice.
 
 ---
 

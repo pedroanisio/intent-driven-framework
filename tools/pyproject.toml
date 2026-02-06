@@ -14,5 +14,8 @@ markers = [
     "operational: CC-19 through CC-26",
     "cross_layer: cross-layer consistency (YAML/Zod/Lean)",
     "prose: prose-YAML consistency checks",
+    "domain: domain instantiation tests",
+    "hypothesis: domain-invariance hypothesis tests",
+    "bridge: criteria-to-root bridge tests",
 ]
 addopts = "-v --tb=short"

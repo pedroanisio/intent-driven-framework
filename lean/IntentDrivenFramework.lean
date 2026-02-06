@@ -775,10 +775,10 @@ def root_operational_cycle : OperationalCycle := {
   ]
 }
 
-/-- The root intent as concrete data (v1.3.0, schema 0.4.0) -/
+/-- The root intent as concrete data (v1.5.0, schema 0.4.0) -/
 def root_meta_intent : Intent := {
   id := "intent-driven-framework-definition"
-  version := .v 1 3 0
+  version := .v 1 5 0
   schema_version := some (.v 0 4 0)
   declares := "The Intent Driven Framework is a purpose governance model. It treats intent as a first-class entity — structured, versioned, and verifiable — across any domain where decisions serve goals that degrade, drift, or become invisible over time."
   scope := ["intent-driven-framework-definition.yml",

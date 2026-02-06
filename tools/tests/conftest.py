@@ -20,6 +20,8 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 DEFAULT_ROOT_INTENT = REPO_ROOT / "criteria" / "intent-driven-framework-definition.yml"
 DEFAULT_SCHEMA_JS = REPO_ROOT / "tools" / "schema.js"
 DEFAULT_LEAN_FILE = REPO_ROOT / "lean" / "IntentDrivenFramework.lean"
+DEFAULT_SDLC_AI_INTENT = REPO_ROOT / "_domains" / "sdlc-ai" / "intent-sdlc-ai.yml"
+DEFAULT_CRITERIA_INTENT = REPO_ROOT / "criteria" / "intent-manifesto-v1.6.1.yml"
 
 
 # ── CLI OPTIONS ──────────────────────────────────────────────────
@@ -47,6 +49,16 @@ def pytest_addoption(parser):
         "--prose-manifesto",
         default=str(DEFAULT_PROSE_MANIFESTO),
         help="Path to the prose manifesto markdown file",
+    )
+    parser.addoption(
+        "--sdlc-ai-intent",
+        default=str(DEFAULT_SDLC_AI_INTENT),
+        help="Path to the SDLC+AI domain intent YAML",
+    )
+    parser.addoption(
+        "--criteria-intent",
+        default=str(DEFAULT_CRITERIA_INTENT),
+        help="Path to the criteria intent YAML (intent-manifesto-itself)",
     )
 
 
@@ -94,6 +106,62 @@ def prose_manifesto_text(prose_manifesto_path) -> str:
     return prose_manifesto_path.read_text(encoding="utf-8")
 
 
+# ── DOMAIN FIXTURES ─────────────────────────────────────────────
+
+@pytest.fixture(scope="session")
+def sdlc_ai_intent_path(request) -> Path:
+    return Path(request.config.getoption("--sdlc-ai-intent"))
+
+
+@pytest.fixture(scope="session")
+def sdlc_ai_intent(sdlc_ai_intent_path) -> dict:
+    """The SDLC+AI domain intent as a parsed Python dict.
+
+    Returns the top-level 'intent' key's value.
+    """
+    if not sdlc_ai_intent_path.exists():
+        pytest.skip(f"SDLC+AI domain intent not found: {sdlc_ai_intent_path}")
+    raw = yaml.safe_load(sdlc_ai_intent_path.read_text(encoding="utf-8"))
+    assert "intent" in raw, "Domain intent YAML must have a top-level 'intent' key"
+    return raw["intent"]
+
+
+@pytest.fixture(scope="session")
+def sdlc_ai_intent_text(sdlc_ai_intent_path) -> str:
+    """Raw text of the SDLC+AI domain intent file."""
+    if not sdlc_ai_intent_path.exists():
+        pytest.skip(f"SDLC+AI domain intent not found: {sdlc_ai_intent_path}")
+    return sdlc_ai_intent_path.read_text(encoding="utf-8")
+
+
+# ── CRITERIA INTENT FIXTURES ────────────────────────────────────
+
+@pytest.fixture(scope="session")
+def criteria_intent_path(request) -> Path:
+    return Path(request.config.getoption("--criteria-intent"))
+
+
+@pytest.fixture(scope="session")
+def criteria_intent(criteria_intent_path) -> dict:
+    """The criteria intent (intent-manifesto-itself) as a parsed dict.
+
+    Returns the top-level 'intent' key's value.
+    """
+    if not criteria_intent_path.exists():
+        pytest.skip(f"Criteria intent not found: {criteria_intent_path}")
+    raw = yaml.safe_load(criteria_intent_path.read_text(encoding="utf-8"))
+    assert "intent" in raw, "Criteria intent YAML must have a top-level 'intent' key"
+    return raw["intent"]
+
+
+@pytest.fixture(scope="session")
+def criteria_intent_text(criteria_intent_path) -> str:
+    """Raw text of the criteria intent file."""
+    if not criteria_intent_path.exists():
+        pytest.skip(f"Criteria intent not found: {criteria_intent_path}")
+    return criteria_intent_path.read_text(encoding="utf-8")
+
+
 # ── CROSS-LAYER FIXTURES ────────────────────────────────────────
 
 @pytest.fixture(scope="session")
@@ -131,6 +199,9 @@ def pytest_configure(config):
         "operational: CC-19 through CC-26",
         "cross_layer: cross-layer consistency (YAML/Zod/Lean)",
         "prose: prose-YAML consistency checks",
+        "domain: domain instantiation tests",
+        "hypothesis: domain-invariance hypothesis tests",
+        "bridge: criteria-to-root bridge tests",
     ]:
         config.addinivalue_line("markers", marker)
 

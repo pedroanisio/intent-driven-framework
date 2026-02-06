@@ -213,10 +213,11 @@ class TestTransition1_4_0:
     @pytest.mark.core
     @pytest.mark.self_conformance
     def test_version_is_1_4_0(self, root_intent):
-        """Version must be bumped to 1.4.0."""
+        """Version must be at least 1.4.0 (forcing function satisfied)."""
         version = str(root_intent.get("version", ""))
-        assert version == "1.4.0", (
-            f"RED: version is {version}, expected 1.4.0. "
+        parts = [int(x) for x in version.split(".")]
+        assert parts >= [1, 4, 0], (
+            f"RED: version is {version}, expected >= 1.4.0. "
             "The external critical review created forcing functions "
             "that require a MINOR bump."
         )
