@@ -53,39 +53,48 @@ The isomorphism is a design commitment, not yet a proven property. See FC-07 in 
 ```
 .
 ├── prose/
-│   ├── intent-manifesto.md          # The philosophy — why this exists
-│   ├── intent-spec-core.md          # The universal data model (planned; referenced but not yet present)
+│   ├── intent-manifesto.md              # The philosophy — why this exists
+│   ├── intent-spec-core.md              # The universal data model (planned; not yet present)
 │   ├── intent-spec-idf-sdlc-v1.7.0.md  # SDLC domain spec
 │   └── tools/
-│       └── idf-sdlc-v1.7.0-init.py  # SDLC repo initializer
+│       └── idf-sdlc-v1.7.0-init.py     # SDLC repo initializer
 ├── criteria/
 │   ├── intent-driven-framework-definition.yml  # Root intent declaration
 │   └── intent-idf-sdlc-v1.7.0.yml              # SDLC domain intent
 ├── lean/
-│   ├── IntentDrivenFramework.lean   # Lean 4 proofs (12 CC kernel-checked)
+│   ├── IntentDrivenFramework.lean       # Lean 4 proofs (12 CC kernel-checked)
 │   ├── lakefile.lean
 │   └── lean-toolchain
 ├── tools/
-│   ├── validate.js                  # Zod schema validation
-│   ├── schema.js                    # Entity schemas
-│   ├── store.js                     # Intent store
-│   ├── nlp_validator.py             # NLP semantic entailment (13 CC)
+│   ├── validate.js                      # Zod schema validation
+│   ├── schema.js                        # Entity schemas
+│   ├── store.js                         # Intent store
+│   ├── nlp_validator.py                 # NLP semantic entailment (13 CC)
+│   ├── drift_check.py                   # Cross-layer drift detection
 │   ├── pyproject.toml
 │   ├── package.json
-│   └── tests/
-│       ├── conftest.py
-│       ├── criteria.py              # Criteria definitions
-│       ├── evidence.py              # Evidence scoring
-│       ├── test_model.py            # Data model tests
-│       ├── test_structure.py        # Structural tests
-│       ├── test_self_conformance.py # Self-conformance checks
-│       ├── test_philosophy.py       # Philosophy section tests
-│       ├── test_adoption.py         # Adoption pathway tests
-│       ├── test_operational.py      # Operational cycle tests
-│       ├── test_conflict.py         # Tension/conflict tests
-│       ├── test_extensibility.py    # Extension surface tests
-│       ├── test_self_sufficiency.py # Sufficiency tests
-│       └── test_deferred.py         # Deferred/future criteria
+│   └── tests/                           # Pytest self-conformance suite
+├── _repo/                               # IDF SDLC v1.7.0 — the framework governing itself
+│   ├── intents/
+│   │   ├── manifest.yml                 # Intent index
+│   │   ├── achieved/                    # Achieved intent YAML files
+│   │   └── aspirational/               # Aspirational intent YAML files
+│   ├── schemas/
+│   │   ├── enums.yml                    # Canonical closed enums
+│   │   ├── intent-achieved.yml          # Achieved intent schema
+│   │   └── intent-aspirational.yml      # Aspirational intent schema
+│   ├── transitions/                     # Version change records
+│   ├── tensions/                        # Declared conflicts between intents
+│   ├── decisions/                       # Decision records referencing intents
+│   ├── plugins/                         # Extension plugins
+│   ├── apps/
+│   │   └── api/                         # GraphQL record store (graphql-yoga + sql.js)
+│   │       └── server.js
+│   ├── data/
+│   │   └── idf.db                       # SQLite persistence (auto-created)
+│   └── docs/
+│       ├── daily-practice.md
+│       └── sdlc-app.md
 └── .flaw-state.json
 ```
 
@@ -195,6 +204,89 @@ Note: the regex scorer is a legacy baseline; its implementation is not present i
 
 ---
 
+## GraphQL API
+
+A record store for IDF entities, backed by SQLite and validated by Zod schemas on every write.
+
+```
+http://127.0.0.1:8081/graphql
+```
+
+### Schema
+
+```graphql
+type Record {
+  id: ID!
+  kind: String!
+  payload: String!     # JSON-serialized entity
+  created_at: String
+}
+
+type Query {
+  list(kind: String!): [Record!]!
+  get(kind: String!, id: ID!): Record
+}
+
+type Mutation {
+  upsert(kind: String!, payload: String!): Record!
+}
+```
+
+### Valid `kind` values
+
+| Kind | Entity | Zod Schema |
+|------|--------|-----------|
+| `intent_aspirational` | Aspirational intent (requires `current_reality`) | `IntentAspirational` |
+| `intent_achieved` | Achieved intent | `IntentAchieved` |
+| `tension` | Declared conflict between intents | `Tension` |
+| `decision` | Decision record with `intent_refs` | `Decision` |
+| `transition` | Version change record | `Transition` |
+| `plugin` | Extension plugin manifest | `Plugin` |
+| `manifest` | Repository manifest | `Manifest` |
+
+### Start the API
+
+```bash
+cd _repo/apps/api && node server.js
+```
+
+The database is auto-created at `_repo/data/idf.db` on first run. Payloads are validated against entity schemas before persistence — invalid writes are rejected with Zod error details.
+
+---
+
+## Declared Intents
+
+This repository governs itself using the IDF SDLC. Five intents are declared:
+
+### Achieved
+
+| Intent | Status | Confidence | Coverage | Governs |
+|--------|--------|-----------|----------|---------|
+| `intent-framework-self-definition` | active | high | substantial | Root YAML, criteria system |
+| `intent-sdlc-domain-spec` | active | high | full | SDLC v1.7.0 spec, `_repo/` structure |
+
+### Aspirational
+
+| Intent | Status | Confidence | Key Gap |
+|--------|--------|-----------|---------|
+| `intent-verification-pipeline` | active | medium | Stage 4 blocked on missing `prose/intent-spec-core.md` |
+| `intent-prose-completeness` | proposed | medium | `prose/intent-spec-core.md` does not exist |
+| `intent-domain-invariance-evidence` | proposed | medium | Zero external domain pilots (FC-04) |
+
+The `serves` graph:
+
+```
+intent-framework-self-definition          (root)
+├── intent-verification-pipeline          (how we verify)
+├── intent-prose-completeness             (what's missing)
+├── intent-sdlc-domain-spec              (first domain instantiation)
+└── intent-domain-invariance-evidence     (most important open question)
+```
+
+All intents are queryable via the GraphQL API (`list(kind: "intent_aspirational")`, `list(kind: "intent_achieved")`).
+
+---
+
 ## Key Concepts
 
 ### Intent as First-Class Entity
@@ -219,7 +311,7 @@ Structural conflicts between legitimate goals, declared explicitly so they canno
 
 ### Failure Modes
 
-The framework names six ways it fails when adopted badly:
+The framework names seven ways it fails when adopted badly:
 
 - **FM-01 Performative intent** — declarations exist but are never checked or referenced
 - **FM-02 Over-specification** — every function has its own intent; signal drowns in noise
@@ -227,6 +319,7 @@ The framework names six ways it fails when adopted badly:
 - **FM-04 Tension avoidance** — teams refuse to name political conflicts
 - **FM-05 Cargo cult structure** — template-generated files, never modified
 - **FM-06 Green-washing** — claiming satisfaction without updating evidence
+- **FM-07 Metric gaming** — measurable proxies are optimized while actual purpose goes unserved (Goodhart's Law)
 
 ---
 
@@ -271,6 +364,16 @@ cd tools && pip install -e .
 
 # Lean toolchain
 cd lean && elan toolchain install $(cat lean-toolchain)
+
+# GraphQL API dependencies
+cd _repo/apps/api && pnpm install
+```
+
+### Start the API
+
+```bash
+cd _repo/apps/api && node server.js
+# → GraphQL API running at http://127.0.0.1:8081/graphql
 ```
 
 ### Verify

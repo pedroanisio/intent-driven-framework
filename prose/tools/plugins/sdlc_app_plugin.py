@@ -900,6 +900,9 @@ def _web_index_html() -> str:
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
         <title>IDF SDLC Console</title>
       </head>
       <body>
@@ -942,8 +945,8 @@ def _web_button_jsx() -> str:
         <button
           className={cn(
             "inline-flex items-center justify-center rounded-md text-sm font-medium",
-            "h-9 px-4 py-2 bg-black text-white hover:bg-black/80",
-            "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+            "h-9 px-4 py-2 bg-black text-white hover:bg-black/85",
+            "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ring-neutral-400",
             className
           )}
           {...props}
@@ -1280,7 +1283,9 @@ def _web_store_js() -> str:
     export const useRecords = create((set, get) => ({
       kind: "intent_aspirational",
       records: [],
+      intents: [],
       loading: false,
+      intentsLoading: false,
       setKind(kind) {
         set({ kind });
       },
@@ -1290,10 +1295,25 @@ def _web_store_js() -> str:
         const records = await listRecords(kind);
         set({ records, loading: false });
       },
+      async refreshIntents() {
+        set({ intentsLoading: true });
+        const [asp, ach] = await Promise.all([
+          listRecords("intent_aspirational"),
+          listRecords("intent_achieved"),
+        ]);
+        const merged = [...asp, ...ach].map((r) => ({
+          ...r,
+          kind: r.kind || (asp.includes(r) ? "intent_aspirational" : "intent_achieved"),
+        }));
+        set({ intents: merged, intentsLoading: false });
+      },
       async saveRecord(payload) {
         const kind = get().kind;
         const saved = await upsertRecord(kind, payload);
         set({ records: [saved, ...get().records.filter(r => r.id !== saved.id)] });
+        if (kind === "intent_aspirational" || kind === "intent_achieved") {
+          set({ intents: [saved, ...get().intents.filter(r => r.id !== saved.id)] });
+        }
       }
     }));
     """)
@@ -1715,7 +1735,8 @@ def _web_index_css() -> str:
     }
 
     body {
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #f5f5f4 0%, #fafaf9 40%, #ffffff 100%);
     }
     """)
 
