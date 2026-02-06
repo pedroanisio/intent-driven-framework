@@ -14,8 +14,129 @@ If no target directory is given, defaults to ./idf-repo
 import os
 import sys
 import textwrap
+import importlib.util
 from datetime import date
 from pathlib import Path
+from dataclasses import dataclass, field
+from typing import Callable, Optional
+
+
+# ─── PLUGIN HOOK SYSTEM ─────────────────────────────────────────────────────
+# Plugins extend the init process by registering hooks at defined lifecycle
+# points. This follows CC-12 (extension surface) and CC-20c (lifecycle hooks):
+# the core emits events, plugins react, the core never inspects plugin internals.
+#
+# Hook points:
+#   pre_init        — before any directories or files are created
+#   post_directories — after directory tree is created, before files
+#   post_files       — after all core files are written
+#   post_init        — after init_repo completes (final output)
+#
+# Plugins can also contribute:
+#   extra_directories — additional dirs merged into DIRECTORIES
+#   extra_files       — additional file entries merged into FILES
+
+@dataclass
+class PluginRegistration:
+    """A registered init plugin."""
+    id: str
+    name: str
+    version: str
+    description: str
+    hooks: dict = field(default_factory=dict)          # hook_name -> callable(root, config)
+    extra_directories: list = field(default_factory=list)
+    extra_files: dict = field(default_factory=dict)    # relpath -> content_fn
+
+
+class PluginRegistry:
+    """Registry for init plugins. Singleton per process."""
+
+    def __init__(self):
+        self._plugins: dict[str, PluginRegistration] = {}
+        self._hook_order: list[str] = []
+
+    def register(self, plugin: PluginRegistration) -> None:
+        if plugin.id in self._plugins:
+            print(f"  ⚠ Plugin '{plugin.id}' already registered, skipping duplicate")
+            return
+        self._plugins[plugin.id] = plugin
+        self._hook_order.append(plugin.id)
+
+    def fire(self, hook_name: str, root: Path, config: dict) -> list[dict]:
+        """Fire a hook across all registered plugins. Returns results."""
+        results = []
+        for pid in self._hook_order:
+            plugin = self._plugins[pid]
+            handler = plugin.hooks.get(hook_name)
+            if handler:
+                try:
+                    result = handler(root, config)
+                    results.append({"plugin": pid, "hook": hook_name, "result": result})
+                except Exception as e:
+                    # CC-20c: handler failure does not prevent subsequent handlers
+                    results.append({"plugin": pid, "hook": hook_name, "error": str(e)})
+                    print(f"  ⚠ Plugin '{pid}' hook '{hook_name}' failed: {e}")
+        return results
+
+    def collect_directories(self) -> list[str]:
+        dirs = []
+        for plugin in self._plugins.values():
+            dirs.extend(plugin.extra_directories)
+        return dirs
+
+    def collect_files(self) -> dict:
+        files = {}
+        for plugin in self._plugins.values():
+            for relpath, fn in plugin.extra_files.items():
+                if relpath in files:
+                    print(f"  ⚠ File conflict: '{relpath}' from plugin '{plugin.id}' — last writer wins")
+                files[relpath] = fn
+        return files
+
+    @property
+    def plugins(self) -> dict[str, PluginRegistration]:
+        return dict(self._plugins)
+
+    def summary(self) -> str:
+        if not self._plugins:
+            return "  (no plugins registered)"
+        lines = []
+        for p in self._plugins.values():
+            hooks = ", ".join(p.hooks.keys()) or "none"
+            extras = f"{len(p.extra_directories)} dirs, {len(p.extra_files)} files"
+            lines.append(f"  🔌 {p.id} v{p.version} — hooks: [{hooks}], contributes: [{extras}]")
+        return "\n".join(lines)
+
+
+# Global registry
+PLUGIN_REGISTRY = PluginRegistry()
+
+
+def load_plugins_from_directory(plugin_dir: str) -> int:
+    """
+    Discover and load plugins from a directory.
+    Each plugin is a .py file that calls PLUGIN_REGISTRY.register() on import.
+    Returns count of loaded plugins.
+    """
+    plugin_path = Path(plugin_dir)
+    if not plugin_path.is_dir():
+        return 0
+    count = 0
+    for py_file in sorted(plugin_path.glob("*.py")):
+        if py_file.name.startswith("_"):
+            continue
+        try:
+            spec = importlib.util.spec_from_file_location(
+                f"idf_plugin_{py_file.stem}", py_file
+            )
+            mod = importlib.util.module_from_spec(spec)
+            # Inject registry into module namespace before exec
+            mod.PLUGIN_REGISTRY = PLUGIN_REGISTRY
+            spec.loader.exec_module(mod)
+            count += 1
+        except Exception as e:
+            print(f"  ⚠ Failed to load plugin '{py_file.name}': {e}")
+    return count
 
 
 # ─── CONFIGURATION ──────────────────────────────────────────────────────────
@@ -1129,9 +1250,15 @@ FILES = {
 }
 
 
-def init_repo(target: str) -> None:
-    """Create the full IDF repository structure."""
+def init_repo(target: str, plugin_dir: str = None) -> None:
+    """Create the full IDF repository structure with plugin support."""
     root = Path(target)
+    config = {
+        "target": target,
+        "schema_version": SCHEMA_VERSION,
+        "framework_version": FRAMEWORK_VERSION,
+        "today": TODAY,
+    }
 
     print(f"╔══════════════════════════════════════════════════╗")
     print(f"║  IDF Codebase Initializer v{FRAMEWORK_VERSION}               ║")
@@ -1139,29 +1266,68 @@ def init_repo(target: str) -> None:
     print(f"╚══════════════════════════════════════════════════╝")
     print()
 
+    # ── Load plugins ──
+    if plugin_dir:
+        loaded = load_plugins_from_directory(plugin_dir)
+        if loaded:
+            print(f"Loaded {loaded} plugin(s) from {plugin_dir}:")
+            print(PLUGIN_REGISTRY.summary())
+            print()
+    # Also check for plugins/ next to this script
+    script_plugins = Path(__file__).parent / "plugins"
+    if script_plugins.is_dir() and str(script_plugins) != str(plugin_dir):
+        loaded = load_plugins_from_directory(str(script_plugins))
+        if loaded:
+            print(f"Loaded {loaded} plugin(s) from {script_plugins}:")
+            print(PLUGIN_REGISTRY.summary())
+            print()
+
+    # ── Hook: pre_init ──
+    PLUGIN_REGISTRY.fire("pre_init", root, config)
+
+    # ── Merge plugin directories ──
+    all_directories = DIRECTORIES + PLUGIN_REGISTRY.collect_directories()
+
     # Create directories
     print("Creating directories...")
-    for d in DIRECTORIES:
+    for d in all_directories:
         dirpath = root / d
         dirpath.mkdir(parents=True, exist_ok=True)
         print(f"  📁 {d}/")
 
     print()
 
+    # ── Hook: post_directories ──
+    PLUGIN_REGISTRY.fire("post_directories", root, config)
+
+    # ── Merge plugin files ──
+    all_files = dict(FILES)
+    all_files.update(PLUGIN_REGISTRY.collect_files())
+
     # Create files
     print("Creating files...")
-    for relpath, content_fn in FILES.items():
+    for relpath, content_fn in all_files.items():
         filepath = root / relpath
         filepath.parent.mkdir(parents=True, exist_ok=True)
         filepath.write_text(content_fn())
         print(f"  📄 {relpath}")
 
     print()
+
+    # ── Hook: post_files ──
+    PLUGIN_REGISTRY.fire("post_files", root, config)
+
     print(f"{'─' * 52}")
     print(f"✓ Initialized IDF repository at: {root.resolve()}")
-    print(f"  Directories: {len(DIRECTORIES)}")
-    print(f"  Files:       {len(FILES)}")
+    print(f"  Directories: {len(all_directories)}")
+    print(f"  Files:       {len(all_files)}")
+    if PLUGIN_REGISTRY.plugins:
+        print(f"  Plugins:     {len(PLUGIN_REGISTRY.plugins)}")
     print()
+
+    # ── Hook: post_init ──
+    PLUGIN_REGISTRY.fire("post_init", root, config)
+
     print("Next steps:")
     print("  1. cd", target)
     print("  2. Read docs/adoption/adoption-guide.md")
@@ -1204,7 +1370,17 @@ def init_repo(target: str) -> None:
     for cc, desc in coverage.items():
         print(f"  {cc}: {desc}")
 
+    # ── Plugin contributions ──
+    if PLUGIN_REGISTRY.plugins:
+        print()
+        print("Plugin Contributions:")
+        print(PLUGIN_REGISTRY.summary())
+
 
 if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_TARGET
-    init_repo(target)
+    import argparse
+    parser = argparse.ArgumentParser(description="IDF SDLC v1.7.0 Initializer")
+    parser.add_argument("target", nargs="?", default=DEFAULT_TARGET, help="Target directory")
+    parser.add_argument("--plugins", default=None, help="Directory containing plugin .py files")
+    args = parser.parse_args()
+    init_repo(args.target, plugin_dir=args.plugins)
