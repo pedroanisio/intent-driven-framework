@@ -12,5 +12,6 @@ markers = [
     "self_sufficiency: CC-16, CC-17",
     "self_conformance: CC-18, CC-27",
     "operational: CC-19 through CC-26",
+    "cross_layer: cross-layer consistency (YAML/Zod/Lean)",
 ]
 addopts = "-v --tb=short"
