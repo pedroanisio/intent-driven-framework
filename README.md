@@ -56,7 +56,7 @@ The isomorphism is a design commitment, not yet a proven property. See FC-07 in 
 │   ├── intent-manifesto.md          # The philosophy — why this exists
 │   └── intent-spec-core.md          # The universal data model
 ├── criteria/
-│   ├── intent-manifesto-v1.6.1.yml  # 28 completeness criteria
+│   ├── intent-driven-framework-definition.yml  # root intent declaration
 │   └── intent-driven-framework-definition.yml  # Root intent declaration
 ├── lean/
 │   ├── IntentDrivenFramework.lean   # Lean 4 proofs (10 CC kernel-checked)

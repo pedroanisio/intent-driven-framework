@@ -4,10 +4,9 @@
   "description": "Validation and scoring tools for the Intent Framework",
   "private": true,
   "scripts": {
-    "validate": "node validate.js ../criteria/intent-manifesto-v1.6.1.yml",
+    "validate": "node validate.js ../criteria/intent-driven-framework-definition.yml",
     "history": "node validate.js history",
     "reset": "node validate.js reset",
-    "score": "python3 score_v150.py ../prose/intent-manifesto.md ../prose/intent-spec.md ../criteria/intent-manifesto-v1.6.1.yml",
     "score:nlp": "python3 nlp_validator.py ../prose/intent-manifesto.md ../prose/intent-spec.md",
     "score:nlp:dry": "python3 nlp_validator.py --dry-run ../prose/intent-manifesto.md ../prose/intent-spec.md",
     "test": "python3 -m pytest tests/ -v",
