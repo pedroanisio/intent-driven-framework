@@ -1,0 +1,73 @@
+# Canonical Enums — Intent Driven Framework v1.7.0
+# Schema version: 0.1.0
+#
+# All enums are CLOSED. Adding a new value requires a schema_version bump (CC-24).
+# These are the single source of truth referenced by all schemas and validators.
+
+enums:
+  change_type:
+    - clarification
+    - correction
+    - extension
+    - reclassification
+    - breaking
+    - deprecation
+    - MAJOR
+    - MINOR
+    - PATCH
+
+  origin_type:
+    - engineering
+    - product
+    - incident
+    - discovery
+    - regulatory
+    - organizational
+    - devops
+    - ux
+    - data
+    - sre
+    - security
+
+  origin_relationship:
+    - derived_from
+    - motivated_by
+    - constrained_by
+    - triggered_by
+    - discovered_in
+
+  priority:
+    - critical
+    - high
+    - medium
+    - low
+
+  confidence:
+    - high
+    - medium
+    - low
+
+  status:
+    - proposed
+    - active
+    - evolving
+    - superseded
+    - residual
+    - retracted
+    - accepted
+    - deprecated
+
+  tier:
+    - core
+    - deferred
+
+  achieved_coverage:
+    - none
+    - minimal
+    - partial
+    - substantial
+    - full
+
+  intent_type:
+    - aspirational
+    - achieved

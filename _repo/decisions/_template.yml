@@ -1,0 +1,14 @@
+# Decision Record
+# Schema version: 0.1.0
+
+decision:
+  id: decision-XXXX
+  date: "2026-02-06"
+  intent_refs: []         # list of intent IDs this decision relates to
+  context: >
+    TODO: What situation prompted this decision?
+  decision: >
+    TODO: What was decided?
+  consequences: >
+    TODO: What are the expected consequences?
+  status: proposed        # proposed | accepted | superseded | deprecated

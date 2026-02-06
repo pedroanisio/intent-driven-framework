@@ -1,0 +1,32 @@
+# Worked Example: SLA Plugin
+# Demonstrates CC-11 (plugin architecture) and CC-12 (ext: namespace)
+
+plugin:
+  id: plugin-sla
+  name: "SLA Tracker"
+  version: "1.0.0"
+  description: >
+    Adds SLA tracking fields to intent declarations, allowing teams
+    to bind response-time commitments to declared intents.
+
+  extends:
+    intent:
+      ext.plugin-sla.sla_target_ms:
+        type: integer
+        description: "Target SLA in milliseconds"
+        required: false
+      ext.plugin-sla.sla_measured_ms:
+        type: integer
+        description: "Last measured SLA in milliseconds"
+        required: false
+
+# ─── Usage in an intent file ────────────────────────────────────────
+#
+# intent:
+#   id: intent-api-latency
+#   declares: "API p99 latency stays below 200ms"
+#   ...
+#   ext:
+#     plugin-sla:
+#       sla_target_ms: 200
+#       sla_measured_ms: 187

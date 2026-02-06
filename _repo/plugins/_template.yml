@@ -1,0 +1,28 @@
+# Plugin Manifest Template
+# Schema version: 0.1.0
+#
+# Plugins extend the core model via the ext: namespace (CC-12).
+# Rules:
+#   (a) Extensions MUST NOT override or shadow core fields
+#   (b) Extensions are namespaced: ext.<plugin_id>.*
+#   (c) Core tooling MUST ignore unrecognised ext: keys gracefully
+#   (d) See plugins/examples/ for a worked example
+
+plugin:
+  id: plugin-example
+  name: "Example Plugin"
+  version: "1.0.0"
+  description: >
+    TODO: What does this plugin add to the IDF model?
+
+  extends:
+    intent:
+      ext.plugin-example.custom_field:
+        type: string
+        description: "An example extension field"
+        required: false
+
+  registry_entry:
+    id: plugin-example
+    version: "1.0.0"
+    compatible_schema_versions: ["0.1.0"]

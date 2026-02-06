@@ -23,7 +23,7 @@ def _api_package_json() -> str:
       "dependencies": {
         "graphql": "^16.8.1",
         "graphql-yoga": "^5.7.0",
-        "sqlite3": "^5.1.7",
+        "sql.js": "^1.11.0",
         "zod": "^3.23.8"
       }
     }
@@ -35,13 +35,16 @@ def _api_server_js() -> str:
     const { createServer } = require("node:http");
     const path = require("node:path");
     const fs = require("node:fs");
-    const sqlite3 = require("sqlite3").verbose();
     const { createYoga, createSchema } = require("graphql-yoga");
     const { z } = require("zod");
+    const initSqlJs = require("sql.js");
 
     const DB_PATH = process.env.IDF_DB || path.join(__dirname, "..", "..", "data", "idf.db");
     fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-    const db = new sqlite3.Database(DB_PATH);
+
+    function locateFile(file) {
+      return path.join(__dirname, "node_modules", "sql.js", "dist", file);
+    }
 
     const KINDS = [
       "intent_aspirational",
@@ -53,14 +56,25 @@ def _api_server_js() -> str:
       "manifest"
     ];
 
-    for (const k of KINDS) {
-      db.run(`
-        CREATE TABLE IF NOT EXISTS ${k} (
-          id TEXT PRIMARY KEY,
-          payload TEXT NOT NULL,
-          created_at TEXT DEFAULT (datetime('now'))
-        )
-      `);
+    async function initDb() {
+      const SQL = await initSqlJs({ locateFile });
+      const buf = fs.existsSync(DB_PATH) ? fs.readFileSync(DB_PATH) : null;
+      const db = buf ? new SQL.Database(buf) : new SQL.Database();
+      for (const k of KINDS) {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS ${k} (
+            id TEXT PRIMARY KEY,
+            payload TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+          )
+        `);
+      }
+      return db;
+    }
+
+    function persist(db) {
+      const data = db.export();
+      fs.writeFileSync(DB_PATH, Buffer.from(data));
     }
 
     const ENUMS = {
@@ -229,6 +243,19 @@ def _api_server_js() -> str:
       return schema.parse(payload);
     }
 
+    async function main() {
+      const db = await initDb();
+
+    const DEFAULT_KIND = "intent_aspirational";
+    function normalizeKind(kind) {
+      const k = (kind || "").trim();
+      if (!k) return DEFAULT_KIND;
+      if (!KINDS.includes(k)) {
+        throw new Error(`Invalid kind: ${k}. Expected one of: ${KINDS.join(", ")}`);
+      }
+      return k;
+    }
+
     const schema = createSchema({
       typeDefs: /* GraphQL */ `
         type Record {
@@ -249,66 +276,70 @@ def _api_server_js() -> str:
       `,
       resolvers: {
         Query: {
-          list: async (_, { kind }) => {
-            if (!KINDS.includes(kind)) throw new Error("Invalid kind");
-            return await new Promise((resolve, reject) => {
-              db.all(`SELECT id, payload, created_at FROM ${kind} ORDER BY created_at DESC`, (err, rows) => {
-                if (err) return reject(err);
-                resolve(rows.map(r => ({ ...r, kind })));
-              });
-            });
+          list: (_, { kind }) => {
+            const k = normalizeKind(kind);
+            const stmt = db.prepare(`SELECT id, payload, created_at FROM ${k} ORDER BY created_at DESC`);
+            const rows = [];
+            while (stmt.step()) {
+              rows.push(stmt.getAsObject());
+            }
+            stmt.free();
+            return rows.map(r => ({ ...r, kind: k }));
           },
-          get: async (_, { kind, id }) => {
-            if (!KINDS.includes(kind)) throw new Error("Invalid kind");
-            return await new Promise((resolve, reject) => {
-              db.get(`SELECT id, payload, created_at FROM ${kind} WHERE id = ?`, [id], (err, row) => {
-                if (err) return reject(err);
-                resolve(row ? { ...row, kind } : null);
-              });
-            });
+          get: (_, { kind, id }) => {
+            const k = normalizeKind(kind);
+            const stmt = db.prepare(`SELECT id, payload, created_at FROM ${k} WHERE id = ?`);
+            stmt.bind([id]);
+            const row = stmt.step() ? stmt.getAsObject() : null;
+            stmt.free();
+            return row ? { ...row, kind: k } : null;
           }
         },
         Mutation: {
-          upsert: async (_, { kind, payload }) => {
-            if (!KINDS.includes(kind)) throw new Error("Invalid kind");
+          upsert: (_, { kind, payload }) => {
+            const k = normalizeKind(kind);
             let parsed;
             try {
               parsed = JSON.parse(payload);
             } catch {
               throw new Error("Payload must be valid JSON");
             }
-            const normalized = normalizePayload(kind, parsed);
-            const data = validate(kind, normalized);
+            const normalized = normalizePayload(k, parsed);
+            const data = validate(k, normalized);
             const id = data.id;
-            await new Promise((resolve, reject) => {
-              db.run(
-                `INSERT INTO ${kind} (id, payload) VALUES (?, ?) ` +
-                `ON CONFLICT(id) DO UPDATE SET payload=excluded.payload`,
-                [id, JSON.stringify(data)],
-                (err) => (err ? reject(err) : resolve())
-              );
-            });
-            return await new Promise((resolve, reject) => {
-              db.get(`SELECT id, payload, created_at FROM ${kind} WHERE id = ?`, [id], (err, row) => {
-                if (err) return reject(err);
-                resolve({ ...row, kind });
-              });
-            });
+            const stmt = db.prepare(
+              `INSERT INTO ${k} (id, payload) VALUES (?, ?) ` +
+              `ON CONFLICT(id) DO UPDATE SET payload=excluded.payload`
+            );
+            stmt.run([id, JSON.stringify(data)]);
+            stmt.free();
+            persist(db);
+            const fetch = db.prepare(`SELECT id, payload, created_at FROM ${k} WHERE id = ?`);
+            fetch.bind([id]);
+            const row = fetch.step() ? fetch.getAsObject() : null;
+            fetch.free();
+            return row ? { ...row, kind: k } : null;
           }
         }
       }
-    });
+      });
 
-    const yoga = createYoga({
-      schema,
-      graphqlEndpoint: "/graphql",
-      cors: { origin: "*", methods: ["GET", "POST"] }
-    });
-    const server = createServer(yoga);
-    const port = process.env.PORT || 8081;
-    const host = process.env.HOST || "127.0.0.1";
-    server.listen(port, host, () => {
-      console.log(`GraphQL API running at http://${host}:${port}/graphql`);
+      const yoga = createYoga({
+        schema,
+        graphqlEndpoint: "/graphql",
+        cors: { origin: "*", methods: ["GET", "POST"] }
+      });
+      const server = createServer(yoga);
+      const port = process.env.PORT || 8081;
+      const host = process.env.HOST || "127.0.0.1";
+      server.listen(port, host, () => {
+        console.log(`GraphQL API running at http://${host}:${port}/graphql`);
+      });
+    }
+
+    main().catch((err) => {
+      console.error(err);
+      process.exit(1);
     });
     """)
 
@@ -331,7 +362,7 @@ def _cli_package_json() -> str:
         "start": "node cli.js"
       },
       "dependencies": {
-        "better-sqlite3": "^9.4.3",
+        "sql.js": "^1.11.0",
         "zod": "^3.23.8"
       }
     }
@@ -342,12 +373,14 @@ def _cli_js() -> str:
     return dedent("""\
     const path = require("node:path");
     const fs = require("node:fs");
-    const Database = require("better-sqlite3");
     const { z } = require("zod");
+    const initSqlJs = require("sql.js");
 
     const DB_PATH = process.env.IDF_DB || path.join(__dirname, "..", "..", "data", "idf.db");
     fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-    const db = new Database(DB_PATH);
+    function locateFile(file) {
+      return path.join(__dirname, "node_modules", "sql.js", "dist", file);
+    }
 
     const KINDS = [
       "intent_aspirational",
@@ -359,14 +392,25 @@ def _cli_js() -> str:
       "manifest"
     ];
 
-    for (const k of KINDS) {
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS ${k} (
-          id TEXT PRIMARY KEY,
-          payload TEXT NOT NULL,
-          created_at TEXT DEFAULT (datetime('now'))
-        )
-      `);
+    async function initDb() {
+      const SQL = await initSqlJs({ locateFile });
+      const buf = fs.existsSync(DB_PATH) ? fs.readFileSync(DB_PATH) : null;
+      const db = buf ? new SQL.Database(buf) : new SQL.Database();
+      for (const k of KINDS) {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS ${k} (
+            id TEXT PRIMARY KEY,
+            payload TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+          )
+        `);
+      }
+      return db;
+    }
+
+    function persist(db) {
+      const data = db.export();
+      fs.writeFileSync(DB_PATH, Buffer.from(data));
     }
 
     const ENUMS = {
@@ -535,101 +579,274 @@ def _cli_js() -> str:
       return schema.parse(payload);
     }
 
-    const args = process.argv.slice(2);
-    const cmd = args[0];
-
-    function usage() {
-      console.log("Usage:");
-      console.log("  node cli.js list --kind KIND");
-      console.log("  node cli.js get --kind KIND --id ID");
-      console.log("  node cli.js add --kind KIND --file PATH");
-      console.log("  node cli.js add --kind KIND --json '{...}'");
-      console.log("Kinds:", KINDS.join(", "));
+    // ─── Arg helpers ───
+    function getFlag(a, name) {
+      const idx = a.indexOf("--" + name);
+      return idx !== -1 && idx + 1 < a.length ? a[idx + 1] : null;
     }
+    function hasFlag(a, name) { return a.includes("--" + name); }
 
-    if (!cmd) {
-      usage();
-      process.exit(1);
-    }
+    // ─── Output envelopes ───
+    const textMode = process.argv.includes("--text");
 
-    if (cmd === "list") {
-      const kind = args.includes("--kind") ? args[args.indexOf("--kind") + 1] : null;
-      if (!kind || !KINDS.includes(kind)) {
-        console.log("Missing or invalid --kind");
-        usage();
-        process.exit(1);
-      }
-      const rows = db.prepare(`SELECT * FROM ${kind} ORDER BY created_at DESC`).all();
-      if (!rows.length) {
-        console.log("No intents found.");
+    function succeed(data, meta = {}) {
+      if (!textMode) {
+        process.stdout.write(JSON.stringify({ ok: true, data, meta }, null, 2) + "\\n");
         process.exit(0);
       }
-      for (const r of rows) {
-        console.log(`${r.id}  ${r.created_at}`);
-      }
-      process.exit(0);
+      return data;
     }
 
-    if (cmd === "get") {
-      const kind = args.includes("--kind") ? args[args.indexOf("--kind") + 1] : null;
-      if (!kind || !KINDS.includes(kind)) {
-        console.log("Missing or invalid --kind");
-        usage();
-        process.exit(1);
+    function fail(error, code, details = []) {
+      if (!textMode) {
+        process.stdout.write(JSON.stringify({ ok: false, error, code, details }, null, 2) + "\\n");
+      } else {
+        console.error("Error: " + error);
+        for (const d of details) console.error("  " + (d.path ? d.path + ": " : "") + d.message);
       }
-      const id = args.includes("--id") ? args[args.indexOf("--id") + 1] : null;
-      if (!id) {
-        console.log("Missing --id");
-        usage();
-        process.exit(1);
-      }
-      const row = db.prepare(`SELECT * FROM ${kind} WHERE id = ?`).get(id);
-      if (!row) {
-        console.log(`Not found: ${kind} ${id}`);
-        process.exit(1);
-      }
-      console.log(JSON.stringify(JSON.parse(row.payload), null, 2));
-      process.exit(0);
+      process.exit(code === "INTERNAL_ERROR" ? 2 : 1);
     }
 
-    if (cmd === "add") {
-      const kind = args.includes("--kind") ? args[args.indexOf("--kind") + 1] : null;
-      if (!kind || !KINDS.includes(kind)) {
-        console.log("Missing or invalid --kind");
-        usage();
-        process.exit(1);
+    // ─── Payload reader (--file, --json, --stdin) ───
+    function readPayload(a) {
+      const fp = getFlag(a, "file");
+      if (fp) return fs.readFileSync(fp, "utf-8");
+      const js = getFlag(a, "json");
+      if (js) return js;
+      if (hasFlag(a, "stdin")) return fs.readFileSync(0, "utf-8");
+      return null;
+    }
+
+    // ─── Zod error formatter ───
+    function formatZodError(ze) {
+      return ze.issues.map(i => ({ path: i.path.join("."), message: i.message, code: i.code }));
+    }
+
+    // ─── Schema introspection ───
+    function describeZodType(schema, depth) {
+      if ((depth || 0) > 6) return { type: "unknown" };
+      const d = (depth || 0) + 1;
+      const def = schema._def;
+      if (!def) return { type: "unknown" };
+      if (def.typeName === "ZodObject") {
+        const fields = {};
+        for (const [k, v] of Object.entries(schema.shape)) fields[k] = describeZodType(v, d);
+        return { type: "object", fields };
       }
-      const fileIdx = args.indexOf("--file");
-      const jsonIdx = args.indexOf("--json");
-      let payloadText = null;
-      if (fileIdx !== -1) {
-        payloadText = fs.readFileSync(args[fileIdx + 1], "utf-8");
-      } else if (jsonIdx !== -1) {
-        payloadText = args[jsonIdx + 1];
+      if (def.typeName === "ZodArray") return { type: "array", items: describeZodType(def.type, d) };
+      if (def.typeName === "ZodEnum") return { type: "enum", values: def.values };
+      if (def.typeName === "ZodLiteral") return { type: "literal", value: def.value };
+      if (def.typeName === "ZodString") {
+        const checks = (def.checks || []).map(c => c.kind === "regex" ? { pattern: String(c.regex) } : { kind: c.kind, value: c.value });
+        return { type: "string", constraints: checks.length ? checks : undefined };
       }
-      if (!payloadText) {
-        console.log("Missing --file or --json payload");
-        usage();
-        process.exit(1);
+      if (def.typeName === "ZodOptional") return { ...describeZodType(def.innerType, d), optional: true };
+      if (def.typeName === "ZodDefault") return { ...describeZodType(def.innerType, d), hasDefault: true };
+      if (def.typeName === "ZodRecord") return { type: "record" };
+      if (def.typeName === "ZodAny") return { type: "any" };
+      return { type: def.typeName || "unknown" };
+    }
+
+    // ─── Kind descriptions ───
+    const KIND_DESC = {
+      intent_aspirational: "Goals and desired states (aspirational mode)",
+      intent_achieved: "Verified accomplished intents (achieved mode)",
+      tension: "Conflicts between two intents",
+      decision: "Architectural or design decisions",
+      transition: "Version transitions with change type",
+      plugin: "Registered IDF plugins",
+      manifest: "Repository manifest summaries"
+    };
+
+    // ─── Commands ───
+    async function cmdKinds() {
+      const data = KINDS.map(k => ({ kind: k, description: KIND_DESC[k] || "" }));
+      const r = succeed(data, { count: data.length });
+      if (r) for (const item of r) console.log(item.kind.padEnd(22) + " " + item.description);
+    }
+
+    async function cmdList(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      const db = await initDb();
+      const stmt = db.prepare("SELECT id, payload, created_at FROM " + kind + " ORDER BY created_at DESC");
+      const rows = [];
+      while (stmt.step()) rows.push(stmt.getAsObject());
+      stmt.free();
+      const full = hasFlag(a, "full");
+      const data = rows.map(row => full
+        ? { id: row.id, created_at: row.created_at, payload: JSON.parse(row.payload) }
+        : { id: row.id, created_at: row.created_at }
+      );
+      const r = succeed(data, { kind, count: data.length });
+      if (r) {
+        if (!r.length) { console.log("No records found."); return; }
+        for (const row of r) console.log(row.id + "  " + row.created_at);
       }
+    }
+
+    async function cmdGet(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      const id = getFlag(a, "id");
+      if (!id) fail("Missing --id", "MISSING_ARGUMENT");
+      const db = await initDb();
+      const stmt = db.prepare("SELECT id, payload, created_at FROM " + kind + " WHERE id = ?");
+      stmt.bind([id]);
+      const row = stmt.step() ? stmt.getAsObject() : null;
+      stmt.free();
+      if (!row) fail("Not found: " + kind + " " + id, "NOT_FOUND");
+      const data = { id: row.id, created_at: row.created_at, payload: JSON.parse(row.payload) };
+      const r = succeed(data, { kind });
+      if (r) console.log(JSON.stringify(r.payload, null, 2));
+    }
+
+    async function cmdAdd(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      const payloadText = readPayload(a);
+      if (!payloadText) fail("Provide payload via --file, --json, or --stdin", "MISSING_ARGUMENT");
       let parsed;
-      try {
-        parsed = JSON.parse(payloadText);
-      } catch (e) {
-        console.log("Invalid JSON payload:", e.message);
-        process.exit(1);
+      try { parsed = JSON.parse(payloadText); }
+      catch (e) { fail("Invalid JSON: " + e.message, "INVALID_JSON"); }
+      let data;
+      try { data = validate(kind, normalize(kind, parsed)); }
+      catch (e) {
+        if (e instanceof z.ZodError) fail("Validation failed", "VALIDATION_ERROR", formatZodError(e));
+        throw e;
       }
-      const data = validate(kind, normalize(kind, parsed));
-      db.prepare(
-        `INSERT INTO ${kind} (id, payload) VALUES (?, ?) ` +
-        `ON CONFLICT(id) DO UPDATE SET payload=excluded.payload`
-      ).run(data.id, JSON.stringify(data));
-      console.log(`Saved ${kind} ${data.id}`);
-      process.exit(0);
+      const db = await initDb();
+      const chk = db.prepare("SELECT id FROM " + kind + " WHERE id = ?");
+      chk.bind([data.id]);
+      const existed = chk.step();
+      chk.free();
+      const stmt = db.prepare(
+        "INSERT INTO " + kind + " (id, payload) VALUES (?, ?) " +
+        "ON CONFLICT(id) DO UPDATE SET payload=excluded.payload"
+      );
+      stmt.run([data.id, JSON.stringify(data)]);
+      stmt.free();
+      persist(db);
+      const r = succeed({ id: data.id, payload: data }, { kind, action: existed ? "updated" : "created" });
+      if (r) console.log((existed ? "Updated" : "Created") + " " + kind + " " + data.id);
     }
 
-    usage();
-    process.exit(1);
+    async function cmdValidate(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      const payloadText = readPayload(a);
+      if (!payloadText) fail("Provide payload via --file, --json, or --stdin", "MISSING_ARGUMENT");
+      let parsed;
+      try { parsed = JSON.parse(payloadText); }
+      catch (e) { fail("Invalid JSON: " + e.message, "INVALID_JSON"); }
+      const result = SCHEMAS[kind].safeParse(normalize(kind, parsed));
+      if (result.success) {
+        succeed({ valid: true }, { kind });
+      } else {
+        fail("Validation failed", "VALIDATION_ERROR", formatZodError(result.error));
+      }
+    }
+
+    async function cmdSchema(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      succeed({ kind, schema: describeZodType(SCHEMAS[kind]) }, { kind });
+    }
+
+    async function cmdDelete(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      const id = getFlag(a, "id");
+      if (!id) fail("Missing --id", "MISSING_ARGUMENT");
+      const db = await initDb();
+      const chk = db.prepare("SELECT id FROM " + kind + " WHERE id = ?");
+      chk.bind([id]);
+      const exists = chk.step();
+      chk.free();
+      if (!exists) fail("Not found: " + kind + " " + id, "NOT_FOUND");
+      db.run("DELETE FROM " + kind + " WHERE id = ?", [id]);
+      persist(db);
+      const r = succeed({ id, deleted: true }, { kind });
+      if (r) console.log("Deleted " + kind + " " + id);
+    }
+
+    async function cmdSearch(a) {
+      const kind = getFlag(a, "kind");
+      if (!kind || !KINDS.includes(kind)) fail("Missing or invalid --kind", "MISSING_ARGUMENT");
+      const field = getFlag(a, "field");
+      if (!field) fail("Missing --field", "MISSING_ARGUMENT");
+      if (!/^[a-zA-Z_][a-zA-Z0-9_.]*$/.test(field)) fail("Invalid field name", "INVALID_FIELD");
+      const value = getFlag(a, "value");
+      if (value === null || value === undefined) fail("Missing --value", "MISSING_ARGUMENT");
+      const db = await initDb();
+      const stmt = db.prepare(
+        "SELECT id, payload, created_at FROM " + kind +
+        " WHERE json_extract(payload, ?) = ? ORDER BY created_at DESC"
+      );
+      stmt.bind(["$." + field, value]);
+      const rows = [];
+      while (stmt.step()) rows.push(stmt.getAsObject());
+      stmt.free();
+      const data = rows.map(row => ({ id: row.id, created_at: row.created_at, payload: JSON.parse(row.payload) }));
+      const r = succeed(data, { kind, field, value, count: data.length });
+      if (r) {
+        if (!r.length) { console.log("No matches."); return; }
+        for (const row of r) console.log(row.id + "  " + row.created_at);
+      }
+    }
+
+    // ─── Dispatch ───
+    const COMMANDS = {
+      kinds: cmdKinds, list: cmdList, get: cmdGet, add: cmdAdd,
+      validate: cmdValidate, schema: cmdSchema, delete: cmdDelete, search: cmdSearch
+    };
+
+    const cliArgs = process.argv.slice(2);
+    const command = cliArgs[0];
+
+    function usage() {
+      console.log([
+        "IDF SDLC CLI \\u2014 Intent-Driven Framework",
+        "",
+        "Usage: node cli.js <command> [options]",
+        "",
+        "Commands:",
+        "  kinds                                       List all entity kinds",
+        "  list   --kind KIND [--full]                  List records",
+        "  get    --kind KIND --id ID                   Get a single record",
+        "  add    --kind KIND (--file|--json|--stdin)    Add or update a record",
+        "  validate --kind KIND (--file|--json|--stdin)  Validate without saving",
+        "  schema --kind KIND                           Introspect Zod schema",
+        "  delete --kind KIND --id ID                   Delete a record",
+        "  search --kind KIND --field F --value V       Search by field value",
+        "  help                                         Show this help",
+        "",
+        "Global flags:",
+        "  --text    Human-readable output (default: JSON envelope)",
+        "",
+        "Kinds: " + KINDS.join(", "),
+        "",
+        "JSON envelope:",
+        "  Success: { \\"ok\\": true,  \\"data\\": ..., \\"meta\\": {...} }",
+        "  Failure: { \\"ok\\": false, \\"error\\": \\"...\\", \\"code\\": \\"...\\", \\"details\\": [...] }"
+      ].join("\\n"));
+    }
+
+    if (!command || command === "help") {
+      usage();
+      process.exit(command ? 0 : 1);
+    }
+
+    async function main() {
+      const handler = COMMANDS[command];
+      if (!handler) fail("Unknown command: " + command, "UNKNOWN_COMMAND");
+      await handler(cliArgs.slice(1));
+    }
+
+    main().catch(function(err) {
+      try { fail("Internal error: " + err.message, "INTERNAL_ERROR"); }
+      catch (_) { process.exit(2); }
+    });
     """)
 
 
@@ -1119,6 +1336,18 @@ def _web_app_jsx() -> str:
         await saveRecord(JSON.stringify(parsed));
       };
 
+      const exportJson = () => {
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${kind}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      };
+
       return (
         <div className="min-h-screen bg-neutral-50 text-neutral-900 p-8">
           <div className="max-w-3xl mx-auto space-y-8">
@@ -1151,6 +1380,9 @@ def _web_app_jsx() -> str:
                   <Button type="submit">Save</Button>
                   <Button type="button" className="ml-2 bg-neutral-700" onClick={() => setPayload(JSON.stringify(sample(kind), null, 2))}>
                     Load Sample
+                  </Button>
+                  <Button type="button" className="ml-2 bg-neutral-900" onClick={exportJson}>
+                    Export JSON
                   </Button>
                 </div>
               </form>
@@ -1247,8 +1479,51 @@ def _docs_sdlc_app() -> str:
     ```
     cd apps/cli
     npm install
-    node cli.js list --kind intent_aspirational
-    node cli.js add --kind intent_aspirational --json '{ "intent": { ... } }'
+    node cli.js help
+    ```
+
+    ### CLI Commands
+    | Command | Purpose |
+    |---------|---------|
+    | `kinds` | List all entity kinds |
+    | `list --kind KIND [--full]` | List records (add `--full` for payloads) |
+    | `get --kind KIND --id ID` | Get a single record |
+    | `add --kind KIND (--file\\|--json\\|--stdin)` | Add or update a record |
+    | `validate --kind KIND (--file\\|--json\\|--stdin)` | Validate without saving |
+    | `schema --kind KIND` | Introspect Zod schema for a kind |
+    | `delete --kind KIND --id ID` | Delete a record |
+    | `search --kind KIND --field F --value V` | Search records by field value |
+
+    ### Output Format
+    By default all commands return JSON envelopes on stdout:
+    ```json
+    { "ok": true,  "data": ..., "meta": { "kind": "...", "count": 3 } }
+    { "ok": false, "error": "...", "code": "NOT_FOUND", "details": [] }
+    ```
+    Add `--text` for human-readable output.
+
+    ### Agent Usage Examples
+    ```bash
+    # Discover available entity kinds
+    node cli.js kinds
+
+    # Introspect schema to know required fields
+    node cli.js schema --kind intent_aspirational
+
+    # Validate a payload before writing (dry-run)
+    node cli.js validate --kind intent_aspirational --json '{"intent":{...}}'
+
+    # Add a record (from stdin for piping)
+    cat payload.json | node cli.js add --kind intent_aspirational --stdin
+
+    # List all records with full payloads
+    node cli.js list --kind intent_aspirational --full
+
+    # Search by field value
+    node cli.js search --kind intent_aspirational --field status --value proposed
+
+    # Delete a record
+    node cli.js delete --kind intent_aspirational --id my-intent-id
     ```
 
     ## Payloads

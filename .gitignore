@@ -2,3 +2,4 @@ lean/.lake/
 tools/node_modules/
 .flaw-state.json
 *.pyc
+
