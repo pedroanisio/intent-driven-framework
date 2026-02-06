@@ -32,6 +32,7 @@ ENUMS = {
     "change_type": [
         "clarification", "correction", "extension",
         "reclassification", "breaking", "deprecation",
+        "MAJOR", "MINOR", "PATCH",
     ],
     "origin_type": [
         "engineering", "product", "incident", "discovery",
@@ -47,6 +48,7 @@ ENUMS = {
     "status": [
         "proposed", "active", "evolving",
         "superseded", "residual", "retracted",
+        "accepted", "deprecated",
     ],
     "tier": ["core", "deferred"],
     "achieved_coverage": [

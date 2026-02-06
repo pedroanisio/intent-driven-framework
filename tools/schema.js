@@ -58,7 +58,7 @@ const OriginRelationship = z.enum([
 
 const FalsifiableClaimStatus = z.enum([
   "supported", "partially_verified", "supported_in_theory",
-  "unverified", "falsified",
+  "unverified", "falsified", "hypothesis_under_test",
 ]);
 
 const TddIsomorphismStatus = z.enum([

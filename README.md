@@ -4,7 +4,7 @@ A purpose governance model. Intent is a first-class entity — structured, versi
 
 The domain is a parameter: software, policy, strategy, regulation, or the framework's own specification documents. The mechanics of declaring, versioning, tracking, and tension-checking purpose are invariant across these domains. What changes is the scope syntax, the artifact types, and the verification methods. The core does not.
 
-**Status:** `proposed` · **Confidence:** `medium` · **Version:** `1.3.0` · **Schema:** `0.4.0`
+**Status:** `proposed` · **Confidence:** `medium` · **Version:** `1.5.0` · **Schema:** `0.4.0`
 
 Confidence is medium because no adopter outside the authorship context has attempted the framework. Internal rigor cannot substitute for external survivability.
 
@@ -294,7 +294,7 @@ The framework makes eight falsifiable claims. If any is falsified, the intent mu
 | FC-01 | Intent is a first-class entity with its own lifecycle | `supported` |
 | FC-02 | Intent → Decision → Artifact chain is mechanically traversable | `supported` |
 | FC-03 | Aspirational intent can be declared without understanding current state | `supported` |
-| FC-04 | The framework is domain-invariant | `partially_verified` |
+| FC-04 | The framework is domain-invariant | `hypothesis_under_test` |
 | FC-05 | The framework is self-contained for adoption | `unverified` |
 | FC-06 | Semantic versioning communicates governance-relevant impact | `supported_in_theory` |
 | FC-07 | Red/Green/Refactor is operationally isomorphic to TDD | `supported_in_theory` |

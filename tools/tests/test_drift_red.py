@@ -47,6 +47,29 @@ def _lean_root_transition_log_len(lean_text: str) -> int:
     return len(re.findall(r"intent_id\s*:=\s*\"intent-driven-framework-definition\"", block))
 
 
+def _parse_init_enums(init_text: str) -> dict[str, list[str]] | None:
+    m = re.search(r"ENUMS\s*=\s*\{(.*?)\n\}\s*", init_text, re.DOTALL)
+    if not m:
+        return None
+    block = m.group(1)
+    enums: dict[str, list[str]] = {}
+    key_re = re.compile(r"^\s*\"([a-zA-Z_]+)\"\s*:\s*\[(.*?)\]\s*,?\s*$", re.MULTILINE | re.DOTALL)
+    for km in key_re.finditer(block):
+        key = km.group(1)
+        raw = km.group(2)
+        vals = [v.strip().strip("'\"") for v in raw.split(",") if v.strip()]
+        enums[key] = vals
+    return enums if enums else None
+
+
+def _parse_zod_enum_from_js(js_text: str, enum_name: str) -> list[str] | None:
+    m = re.search(rf"(?:const|let|var)\s+{re.escape(enum_name)}\s*=\s*z\.enum\(\[(.*?)\]\)", js_text, re.DOTALL)
+    if not m:
+        return None
+    raw = m.group(1)
+    return [v.strip().strip("'\"") for v in raw.split(",") if v.strip().strip("'\"")]
+
+
 @pytest.mark.core
 @pytest.mark.cross_layer
 def test_drift_fc04_status_root_vs_lean(root_intent, lean_text):
@@ -78,4 +101,25 @@ def test_drift_root_transition_log_len(root_intent, lean_text):
     lean_len = _lean_root_transition_log_len(lean_text)
     assert root_len == lean_len, (
         f"DRIFT: root transition_log has {root_len} entries, Lean has {lean_len}"
+    )
+
+
+@pytest.mark.core
+@pytest.mark.cross_layer
+def test_drift_sdlc_init_enums_vs_zod(schema_js_text):
+    """SDLC init ENUMS must match Zod enums for change_type and status."""
+    init_text = (REPO_ROOT / "prose" / "tools" / "idf-sdlc-v1.7.0-init.py").read_text(encoding="utf-8")
+    init_enums = _parse_init_enums(init_text)
+    assert init_enums is not None, "DRIFT: SDLC init ENUMS block missing or unparsable"
+
+    change_type_init = sorted(init_enums.get("change_type", []))
+    status_init = sorted(init_enums.get("status", []))
+    change_type_zod = sorted(_parse_zod_enum_from_js(schema_js_text, "ChangeType") or [])
+    status_zod = sorted(_parse_zod_enum_from_js(schema_js_text, "Status") or [])
+
+    assert change_type_init == change_type_zod, (
+        f"DRIFT: SDLC init ENUMS.change_type {change_type_init} != Zod ChangeType {change_type_zod}"
+    )
+    assert status_init == status_zod, (
+        f"DRIFT: SDLC init ENUMS.status {status_init} != Zod Status {status_zod}"
     )

@@ -92,6 +92,33 @@ def parse_init_sdlc_version(text: str) -> str | None:
     return m.group(1) if m else None
 
 
+def parse_init_enums(text: str) -> dict[str, list[str]] | None:
+    m = re.search(r"ENUMS\s*=\s*\{(.*?)\n\}\s*", text, re.DOTALL)
+    if not m:
+        return None
+    block = m.group(1)
+    enums: dict[str, list[str]] = {}
+    key_re = re.compile(r"^\s*\"([a-zA-Z_]+)\"\s*:\s*\[(.*?)\]\s*,?\s*$", re.MULTILINE | re.DOTALL)
+    for km in key_re.finditer(block):
+        key = km.group(1)
+        raw = km.group(2)
+        vals = [v.strip().strip("'\"") for v in raw.split(",") if v.strip()]
+        enums[key] = vals
+    return enums if enums else None
+
+
+def parse_init_directories(text: str) -> list[str] | None:
+    m = re.search(r"DIRECTORIES\s*=\s*\[(.*?)\n\]\s*", text, re.DOTALL)
+    if not m:
+        return None
+    block = m.group(1)
+    return [
+        v.strip().strip("'\"")
+        for v in re.findall(r"\"([^\"]+)\"|'([^']+)'", block)
+        for v in v if v
+    ]
+
+
 def parse_idf_provides(text: str) -> dict[str, list[str]]:
     """Extract provides id → tested_by list."""
     provides = {}
@@ -351,6 +378,56 @@ def check_sdlc_init_versions(drift: Drift, sdlc_text: str, init_text: str):
         drift.add("SDLC Init", f"docstring SDLC v{init_sdlc_version} != criteria version {sdlc_version}")
 
 
+def check_sdlc_init_enums(drift: Drift, init_text: str, zod_text: str):
+    init_enums = parse_init_enums(init_text)
+    if not init_enums:
+        drift.add("SDLC Init", "ENUMS block missing or unparsable")
+        return
+
+    enum_map = {
+        "change_type": "ChangeType",
+        "origin_type": "OriginType",
+        "origin_relationship": "OriginRelationship",
+        "priority": "Priority",
+        "confidence": "Confidence",
+        "status": "Status",
+        "tier": "Tier",
+        "achieved_coverage": "AchievedCoverage",
+        "intent_type": "IntentType",
+    }
+
+    for init_name, zod_name in enum_map.items():
+        init_vals = init_enums.get(init_name)
+        zod_vals = parse_zod_enum(zod_text, zod_name)
+        if not init_vals:
+            drift.add("SDLC Init", f"ENUMS.{init_name} missing")
+            continue
+        if not zod_vals:
+            drift.add("SDLC Init", f"Zod enum {zod_name} missing")
+            continue
+        if sorted(init_vals) != sorted(zod_vals):
+            drift.add(
+                "SDLC Init",
+                f"ENUMS.{init_name} != Zod {zod_name} "
+                f"(init={sorted(init_vals)}, zod={sorted(zod_vals)})",
+            )
+
+
+def check_sdlc_init_directories(drift: Drift, init_text: str):
+    dirs = parse_init_directories(init_text)
+    if dirs is None:
+        drift.add("SDLC Init", "DIRECTORIES block missing or unparsable")
+        return
+    required = [
+        "prose", "criteria", "schemas", "tools", "lean",
+        "intents", "tensions", "decisions", "transitions",
+        "plugins", "tests", "docs",
+    ]
+    missing = [r for r in required if r not in dirs]
+    if missing:
+        drift.add("SDLC Init", f"DIRECTORIES missing required entries: {', '.join(missing)}")
+
+
 # ── Main ─────────────────────────────────────────────────────────
 
 def main():
@@ -413,6 +490,14 @@ def main():
     # ── 7. SDLC init script versions ─────────────────────────────
     print("Checking SDLC init script versions...")
     check_sdlc_init_versions(drift, sdlc_text, sdlc_init_text)
+
+    # ── 8. SDLC init enums ───────────────────────────────────────
+    print("Checking SDLC init enums (vs Zod)...")
+    check_sdlc_init_enums(drift, sdlc_init_text, zod_text)
+
+    # ── 9. SDLC init directories ─────────────────────────────────
+    print("Checking SDLC init directories...")
+    check_sdlc_init_directories(drift, sdlc_init_text)
 
     # ── Report ───────────────────────────────────────────────────
     print()

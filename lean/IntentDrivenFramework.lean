@@ -18,13 +18,16 @@
     NONE   (~10 properties): inherently informal (philosophy, adoption)
 
   Synchronized with:
-    - intent-driven-framework-definition.yml v1.3.0 (root intent)
-    - schema.js v0.4.0 (Zod types)
+    - intent-driven-framework-definition.yml v1.5.0 (root intent)
+    - schema.js v0.5.0 (Zod types)
     - validate.js (structural validators)
 
   History:
     v1.6.1  — initial Lean formalization (criteria YAML proofs)
     v1.3.0  — extended for root intent model (schema 0.4.0)
+    v1.5.0  — synchronized enums (Status+accepted/deprecated,
+              FalsifiableClaimStatus+hypothesis_under_test,
+              BoundaryType), root transition log 1.0.0→1.5.0
 
   Dependencies: none (Lean 4 stdlib only)
 -/
@@ -76,10 +79,16 @@ def classifyBump (fromVer toVer : SemVer) : BumpLevel :=
 
 /-- CC-05: All enum types are inductive with no escape hatch.
     Lean's inductive types guarantee closure by construction.
-    All enums synchronized with schema.js v0.4.0. -/
+    All enums synchronized with schema.js v0.5.0. -/
 
+/-- IntentStatus — universal lifecycle enum (schema v0.5.0).
+    The first 6 are the intent lifecycle states. accepted and deprecated
+    are decision-lifecycle states added in v0.5.0 when Status became
+    a universal lifecycle enum shared across entity types. -/
 inductive IntentStatus where
   | proposed | active | evolving | superseded | residual | retracted
+  -- v0.5.0: decision-lifecycle states (universal Status enum)
+  | accepted | deprecated
 deriving DecidableEq, Repr
 
 inductive IntentType where
@@ -130,12 +139,18 @@ inductive TensionStatus where
   | active | resolved | dormant | escalated
 deriving DecidableEq, Repr
 
+/-- BoundaryType — added in schema v0.5.0 for Manifest entities. -/
+inductive BoundaryType where
+  | service | library | platform | gateway
+deriving DecidableEq, Repr
+
 /-- Falsifiable claim status — added in schema v0.2.0.
     Carries governance consequences: `falsified` triggers mandatory
-    evolution or retraction. -/
+    evolution or retraction. hypothesis_under_test added in v0.5.0
+    for claims reframed as testable hypotheses. -/
 inductive FalsifiableClaimStatus where
   | supported | partially_verified | supported_in_theory
-  | unverified | falsified
+  | unverified | falsified | hypothesis_under_test
 deriving DecidableEq, Repr, Inhabited
 
 /-- TDD isomorphism status — added in schema v0.3.0.
@@ -156,7 +171,8 @@ deriving DecidableEq, Repr
 theorem enum_closure_IntentStatus :
     ∀ (s : IntentStatus),
       s = .proposed ∨ s = .active ∨ s = .evolving ∨
-      s = .superseded ∨ s = .residual ∨ s = .retracted := by
+      s = .superseded ∨ s = .residual ∨ s = .retracted ∨
+      s = .accepted ∨ s = .deprecated := by
   intro s; cases s <;> simp
 
 theorem enum_closure_ChangeType :
@@ -184,10 +200,16 @@ theorem enum_closure_AchievedCoverage :
       c = .substantial ∨ c = .full := by
   intro c; cases c <;> simp
 
+theorem enum_closure_BoundaryType :
+    ∀ (b : BoundaryType),
+      b = .service ∨ b = .library ∨ b = .platform ∨ b = .gateway := by
+  intro b; cases b <;> simp
+
 theorem enum_closure_FalsifiableClaimStatus :
     ∀ (s : FalsifiableClaimStatus),
       s = .supported ∨ s = .partially_verified ∨
-      s = .supported_in_theory ∨ s = .unverified ∨ s = .falsified := by
+      s = .supported_in_theory ∨ s = .unverified ∨
+      s = .falsified ∨ s = .hypothesis_under_test := by
   intro s; cases s <;> simp
 
 theorem enum_closure_TddIsomorphismStatus :
@@ -217,7 +239,9 @@ theorem patch_bump_maps : ChangeType.toBumpLevel .patch_bump = some .patch := rf
 -- §3. LIFECYCLE STATE MACHINE — CC-07
 -- ════════════════════════════════════════════════════════════════════
 
-/-- Valid transitions in the intent lifecycle. -/
+/-- Valid transitions in the intent lifecycle.
+    The first 9 are the intent lifecycle. The last 2 are decision-lifecycle
+    transitions added in v0.5.0 for the universal Status enum. -/
 inductive ValidTransition : IntentStatus → IntentStatus → Prop where
   | propose_activate  : ValidTransition .proposed .active
   | propose_retract   : ValidTransition .proposed .retracted
@@ -228,20 +252,27 @@ inductive ValidTransition : IntentStatus → IntentStatus → Prop where
   | evolve_retract    : ValidTransition .evolving .retracted
   | active_supersede  : ValidTransition .active .superseded
   | supersede_residual: ValidTransition .superseded .residual
+  -- v0.5.0: decision-lifecycle transitions
+  | propose_accept    : ValidTransition .proposed .accepted
+  | active_deprecate  : ValidTransition .active .deprecated
 
-/-- Every non-terminal state has at least one exit. -/
+/-- Every non-terminal state has at least one exit.
+    Terminal states: residual, retracted, accepted, deprecated. -/
 theorem lifecycle_no_dead_states :
     ∀ (s : IntentStatus),
       s = .residual ∨ s = .retracted ∨
+      s = .accepted ∨ s = .deprecated ∨
       (∃ t, ValidTransition s t) := by
   intro s
   cases s with
-  | proposed => right; right; exact ⟨.active, .propose_activate⟩
-  | active => right; right; exact ⟨.evolving, .activate_evolve⟩
-  | evolving => right; right; exact ⟨.active, .evolve_active⟩
-  | superseded => right; right; exact ⟨.residual, .supersede_residual⟩
+  | proposed => right; right; right; right; exact ⟨.active, .propose_activate⟩
+  | active => right; right; right; right; exact ⟨.evolving, .activate_evolve⟩
+  | evolving => right; right; right; right; exact ⟨.active, .evolve_active⟩
+  | superseded => right; right; right; right; exact ⟨.residual, .supersede_residual⟩
   | residual => left; rfl
   | retracted => right; left; rfl
+  | accepted => right; right; left; rfl
+  | deprecated => right; right; right; left; rfl
 
 /-- Terminal states have no outgoing transitions. -/
 theorem retracted_is_terminal :
@@ -250,6 +281,14 @@ theorem retracted_is_terminal :
 
 theorem residual_is_terminal :
     ¬ ∃ t, ValidTransition .residual t := by
+  intro ⟨t, h⟩; cases h
+
+theorem accepted_is_terminal :
+    ¬ ∃ t, ValidTransition .accepted t := by
+  intro ⟨t, h⟩; cases h
+
+theorem deprecated_is_terminal :
+    ¬ ∃ t, ValidTransition .deprecated t := by
   intro ⟨t, h⟩; cases h
 
 /-- Every non-initial state is reachable from proposed. -/
@@ -272,6 +311,12 @@ theorem residual_reachable : Reachable .residual :=
 theorem retracted_reachable : Reachable .retracted :=
   .step .start .propose_retract
 
+theorem accepted_reachable : Reachable .accepted :=
+  .step .start .propose_accept
+
+theorem deprecated_reachable : Reachable .deprecated :=
+  .step active_reachable .active_deprecate
+
 /-- All states are reachable. -/
 theorem all_states_reachable : ∀ (s : IntentStatus), Reachable s := by
   intro s
@@ -282,6 +327,8 @@ theorem all_states_reachable : ∀ (s : IntentStatus), Reachable s := by
   | superseded => exact superseded_reachable
   | residual => exact residual_reachable
   | retracted => exact retracted_reachable
+  | accepted => exact accepted_reachable
+  | deprecated => exact deprecated_reachable
 
 -- ════════════════════════════════════════════════════════════════════
 -- §4. ENTITY SCHEMAS — CC-04, CC-08
@@ -700,8 +747,8 @@ def root_fc_list : List FalsifiableClaim := [
   { id := "FC-04"
     claim := "The framework is domain-invariant — domain is a parameter, not a constraint"
     falsified_when := "A non-software domain cannot use the model without modifying core mechanics"
-    status := .partially_verified
-    evidence := "Self-application on specification documents proves one non-software transfer" },
+    status := .hypothesis_under_test
+    evidence := "Domain-invariance reframed as testable hypothesis with two active cases: self-application and criteria bridge" },
   { id := "FC-05"
     claim := "The framework is self-contained for adoption"
     falsified_when := "An adopter must consult external resources to understand and apply the model"
@@ -779,7 +826,8 @@ def root_operational_cycle : OperationalCycle := {
   ]
 }
 
-/-- The root intent as concrete data (v1.5.0, schema 0.4.0) -/
+/-- The root intent as concrete data (v1.5.0, schema 0.4.0).
+    FC-04 updated to hypothesis_under_test per v1.5.0 transition. -/
 def root_meta_intent : Intent := {
   id := "intent-driven-framework-definition"
   version := .v 1 5 0
@@ -871,7 +919,7 @@ theorem migration_always_produces_action :
 -- §13. ROOT INTENT TRANSITION LOG — CC-27 WITNESS
 -- ════════════════════════════════════════════════════════════════════
 
-/-- The root intent transition log (1.0.0 → 1.3.0, 4 entries).
+/-- The root intent transition log (1.0.0 → 1.5.0, 6 entries).
     Encoded chronologically. The `summary` field carries the canonical
     `reason` text from the YAML. -/
 def root_intent_log : List Transition := [
@@ -890,30 +938,38 @@ def root_intent_log : List Transition := [
   { intent_id := "intent-driven-framework-definition"
     from_version := .v 1 2 0, to_version := .v 1 3 0
     change_type := .minor_bump
-    summary := "Declares decomposition: extracted provides (with FC cross-refs), design_stance, removed origin evidence redundancy" }
+    summary := "Declares decomposition: extracted provides (with FC cross-refs), design_stance, removed origin evidence redundancy" },
+  { intent_id := "intent-driven-framework-definition"
+    from_version := .v 1 3 0, to_version := .v 1 4 0
+    change_type := .minor_bump
+    summary := "Added intellectual_lineage (6 traditions), T-06 (Goodhart), FM-07 (metric gaming), alternative_cycles section, reframe_commitment" },
+  { intent_id := "intent-driven-framework-definition"
+    from_version := .v 1 4 0, to_version := .v 1 5 0
+    change_type := .minor_bump
+    summary := "Reframed domain-invariance as testable hypothesis. Added domain_invariance_hypothesis with two cases. FC-04 status: partially_verified to hypothesis_under_test" }
 ]
 
 theorem root_log_starts : chainStartsAt root_intent_log (.v 1 0 0) := by
   unfold chainStartsAt root_intent_log
   rfl
 
-theorem root_log_ends : chainEndsAt root_intent_log (.v 1 3 0) := by
+theorem root_log_ends : chainEndsAt root_intent_log (.v 1 5 0) := by
   unfold chainEndsAt root_intent_log
   rfl
 
 theorem root_log_contiguous : chainContiguous root_intent_log := by
   unfold chainContiguous root_intent_log
-  refine ⟨rfl, rfl, rfl, trivial⟩
+  refine ⟨rfl, rfl, rfl, rfl, rfl, trivial⟩
 
 theorem root_log_all_summaries : ∀ t ∈ root_intent_log, t.hasSummary := by
   intro t ht
   unfold Transition.hasSummary
   simp [root_intent_log] at ht
-  rcases ht with rfl | rfl | rfl | rfl <;> simp
+  rcases ht with rfl | rfl | rfl | rfl | rfl | rfl <;> simp
 
-/-- CC-27 for the root intent: complete contiguous chain 1.0.0 → 1.3.0 -/
+/-- CC-27 for the root intent: complete contiguous chain 1.0.0 → 1.5.0 -/
 theorem cc27_root_intent_verified :
-    transitionLogValid root_intent_log (.v 1 0 0) (.v 1 3 0) :=
+    transitionLogValid root_intent_log (.v 1 0 0) (.v 1 5 0) :=
   ⟨root_log_starts, root_log_ends, root_log_contiguous, root_log_all_summaries⟩
 
 -- ════════════════════════════════════════════════════════════════════
@@ -1051,7 +1107,7 @@ theorem root_intent_no_falsified :
   unfold noFalsifiedClaims
   intro fc hfc
   simp [root_fc_list] at hfc
-  rcases hfc with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp
+  rcases hfc with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
 
 /-- Governance predicate: if tdd_isomorphism = structural,
     FC-07 must have status = supported.
@@ -1125,7 +1181,7 @@ theorem root_meta_intent_governance_compliant :
          All fields typed via Lean structures (no partial schemas)
          Intent extended with provides, falsifiable_claims,
          operational_cycle, design_stance (schema v0.4.0)
-  CC-05  All 13 enum types are closed (inductive, exhaustive match)
+  CC-05  All 15 enum types are closed (inductive, exhaustive match)
          ChangeType: 6 descriptive + 3 SemVer-aligned = 9 values
          FalsifiableClaimStatus: 5 values (new)
          TddIsomorphismStatus: 3 values (new)
@@ -1142,7 +1198,7 @@ theorem root_meta_intent_governance_compliant :
   CC-23  Staleness contract: MAJOR→invalidate, MINOR→review, PATCH→pass
   CC-25  Deprecation migration function is total
   CC-27  Criteria YAML log: 1.0.0→1.6.1 contiguous 9-step chain
-         Root intent log: 1.0.0→1.3.0 contiguous 4-step chain
+         Root intent log: 1.0.0→1.5.0 contiguous 6-step chain
 
   NEW — ROOT INTENT MODEL (schema v0.2.0 – v0.4.0):
   ─────────────────────────────────────────────────────
