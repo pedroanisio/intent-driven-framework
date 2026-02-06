@@ -54,12 +54,12 @@ The isomorphism is a design commitment, not yet a proven property. See FC-07 in 
 .
 ├── prose/
 │   ├── intent-manifesto.md          # The philosophy — why this exists
-│   └── intent-spec-core.md          # The universal data model
+│   └── intent-spec-core.md          # The universal data model (planned; referenced but not yet present)
 ├── criteria/
-│   ├── intent-driven-framework-definition.yml  # root intent declaration
-│   └── intent-driven-framework-definition.yml  # Root intent declaration
+│   ├── intent-driven-framework-definition.yml  # Root intent declaration
+│   └── intent-idf-sdlc-v1.7.0.yml              # SDLC domain intent
 ├── lean/
-│   ├── IntentDrivenFramework.lean   # Lean 4 proofs (10 CC kernel-checked)
+│   ├── IntentDrivenFramework.lean   # Lean 4 proofs (12 CC kernel-checked)
 │   ├── lakefile.lean
 │   └── lean-toolchain
 ├── tools/
@@ -91,16 +91,24 @@ The isomorphism is a design commitment, not yet a proven property. See FC-07 in 
 Each stage gates the next. Fail fast, fail cheap. Later layers assume earlier guarantees hold.
 
 ```
-Stage 1 ──→ Stage 2 ──→ Stage 3 ──→ Stage 4 ──→ Stage 5
-Schema      Lean         Self-        NLP          Human
-(ms)        (sec)        conformance  (sec-min)    (async)
-                         (sec)
+Stage 0 ──→ Stage 1 ──→ Stage 2 ──→ Stage 3 ──→ Stage 4 ──→ Stage 5
+Drift       Schema      Lean         Self-        NLP          Human
+(ms)        (ms)        (sec)        conformance  (sec-min)    (async)
+                                     (sec)
 ```
+
+### Stage 0 — Cross-Layer Drift Check
+
+```bash
+python tools/drift_check.py
+```
+
+Confirms that the root intent, Lean formalization, schema, tests, and README agree on key facts (versions, FC statuses, enums, provides → tested_by). Drift is a structural error, not a documentation nit.
 
 ### Stage 1 — Schema Validation
 
 ```bash
-node tools/validate.js
+node tools/validate.js criteria/intent-driven-framework-definition.yml
 ```
 
 Zod checks that every YAML file is structurally valid: correct field names, types, enums, required fields present. The equivalent of "does it compile." Gates everything else.
@@ -111,7 +119,7 @@ Zod checks that every YAML file is structurally valid: correct field names, type
 cd lean && lake build
 ```
 
-10 completeness criteria verified by the Lean 4 kernel (CC-04, CC-05, CC-06, CC-07, CC-08, CC-08b, CC-18, CC-23, CC-25, CC-27) plus structural properties for the operational cycle, provides-FC cross-references, and governance compliance. These are properties of the model, not the prose. If a proof breaks, the model's structural commitments have changed.
+12 completeness criteria verified by the Lean 4 kernel (CC-04, CC-05, CC-06, CC-07, CC-08, CC-08b, CC-11, CC-12, CC-18, CC-23, CC-25, CC-27) plus structural properties for the operational cycle, provides-FC cross-references, and governance compliance. These are properties of the model, not the prose. If a proof breaks, the model's structural commitments have changed.
 
 ### Stage 3 — Self-Conformance Tests
 
@@ -120,6 +128,7 @@ cd tools && pytest tests/ -x
 ```
 
 Checks that the framework's own artifacts conform to the rules the framework declares. Catches inconsistencies like metadata contradicting evidence (the bug that forced the 1.1.0 transition). Deterministic, no API calls. The `-x` flag stops on first failure.
+Some tests are intentionally RED forcing functions (e.g., `prose/intent-spec-core.md` not yet authored). Expect failures until those artifacts land.
 
 ### Stage 4 — NLP Semantic Entailment
 
@@ -129,6 +138,7 @@ python tools/nlp_validator.py prose/intent-manifesto.md prose/intent-spec-core.m
 ```
 
 13 prose-level criteria checked via Claude. Verifies that the prose actually says what the model requires it to say. Most expensive layer — run only when Stages 1–3 are green.
+Requires `prose/intent-spec-core.md` to exist; until that file is authored, Stage 4 will fail fast on missing input.
 
 Options:
 - `--dry-run` — show prompts without calling the API
@@ -146,8 +156,11 @@ Options:
 #!/bin/bash
 set -euo pipefail
 
+echo "═══ Stage 0: Cross-layer drift check ═══"
+python tools/drift_check.py
+
 echo "═══ Stage 1: Schema validation ═══"
-node tools/validate.js
+node tools/validate.js criteria/intent-driven-framework-definition.yml
 
 echo "═══ Stage 2: Lean proofs ═══"
 (cd lean && lake build)
@@ -165,7 +178,7 @@ echo "═══ All automated stages green ═══"
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Lean 4          │  10 CC  │  Kernel-checked         │
+│  Lean 4          │  12 CC  │  Kernel-checked         │
 ├──────────────────┼─────────┼─────────────────────────┤
 │  NLP validator   │  13 CC  │  Semantic entailment    │
 ├──────────────────┼─────────┼─────────────────────────┤
@@ -174,6 +187,8 @@ echo "═══ All automated stages green ═══"
 │  Regex scorer    │  28 CC  │  Keyword heuristics     │
 └──────────────────┴─────────┴─────────────────────────┘
 ```
+
+Note: the regex scorer is a legacy baseline; its implementation is not present in this repo.
 
 ---
 
@@ -258,8 +273,9 @@ cd lean && elan toolchain install $(cat lean-toolchain)
 ### Verify
 
 ```bash
-# Run the full pipeline
-node tools/validate.js && \
+# Run the full pipeline (Stages 0-3)
+python tools/drift_check.py && \
+  node tools/validate.js criteria/intent-driven-framework-definition.yml && \
   (cd lean && lake build) && \
   (cd tools && pytest tests/ -x)
 ```

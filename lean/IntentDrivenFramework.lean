@@ -468,7 +468,7 @@ def transitionLogValid (log : List Transition) (start current : SemVer) : Prop :
 -- §7. CRITERIA YAML LOG v1.6.1 — CC-27 WITNESS
 -- ════════════════════════════════════════════════════════════════════
 
-/-- The criteria YAML transition log (1.0.0 → 1.6.1, 9 entries).
+/-- The criteria YAML transition log (1.0.0 → 1.7.0, 10 entries).
     These proofs remain valid — the criteria YAML is a separate
     document from the root intent. -/
 def v161_log : List Transition := [
@@ -507,30 +507,34 @@ def v161_log : List Transition := [
   { intent_id := "intent-manifesto-itself"
     from_version := .v 1 6 0, to_version := .v 1 6 1
     change_type := .clarification
-    summary := "Fixed spec-to-formalization drift: achieved_coverage moved to top-level, origin_type enum aligned (product_requirement→product, added discovery), prose explanation added" }
+    summary := "Fixed spec-to-formalization drift: achieved_coverage moved to top-level, origin_type enum aligned (product_requirement→product, added discovery), prose explanation added" },
+  { intent_id := "intent-manifesto-itself"
+    from_version := .v 1 6 1, to_version := .v 1 7 0
+    change_type := .extension
+    summary := "Bridge to domain-invariant root intent. Declares broadened to domain-aware completeness criteria. Serves reference added to root intent. Scope updated to current structure. SEMVER mapping added to canonical enums" }
 ]
 
 theorem v161_log_starts : chainStartsAt v161_log (.v 1 0 0) := by
   unfold chainStartsAt v161_log
   rfl
 
-theorem v161_log_ends : chainEndsAt v161_log (.v 1 6 1) := by
+theorem v161_log_ends : chainEndsAt v161_log (.v 1 7 0) := by
   unfold chainEndsAt v161_log
   rfl
 
 theorem v161_log_contiguous : chainContiguous v161_log := by
   unfold chainContiguous v161_log
-  refine ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, trivial⟩
+  refine ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, trivial⟩
 
 theorem v161_log_all_summaries : ∀ t ∈ v161_log, t.hasSummary := by
   intro t ht
   unfold Transition.hasSummary
   simp [v161_log] at ht
-  rcases ht with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp
+  rcases ht with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp
 
 /-- CC-27: the complete theorem for criteria YAML -/
 theorem cc27_criteria_verified :
-    transitionLogValid v161_log (.v 1 0 0) (.v 1 6 1) :=
+    transitionLogValid v161_log (.v 1 0 0) (.v 1 7 0) :=
   ⟨v161_log_starts, v161_log_ends, v161_log_contiguous, v161_log_all_summaries⟩
 
 -- ════════════════════════════════════════════════════════════════════
@@ -621,11 +625,11 @@ theorem no_self_inverse : ∀ r, inverse r ≠ r := by
 -- §11. SELF-CONFORMANCE — CC-18
 -- ════════════════════════════════════════════════════════════════════
 
-/-- The criteria YAML meta-intent (v1.6.1) — preserved from original.
+/-- The criteria YAML meta-intent (v1.7.0) — updated from v1.6.1.
     New default fields are automatically populated. -/
 def meta_intent : Intent := {
   id := "intent-manifesto-itself"
-  version := .v 1 6 1
+  version := .v 1 7 0
   schema_version := some (.v 0 1 0)
   declares := "This manifesto intends to be a self-contained declaration of the intent-driven software development model"
   scope := ["intent-manifesto.md", "intent-spec.md"]

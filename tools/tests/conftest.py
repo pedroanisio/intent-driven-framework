@@ -27,6 +27,7 @@ DEFAULT_CRITERIA_INTENT = REPO_ROOT / "criteria" / "intent-idf-sdlc-v1.7.0.yml"
 # ── CLI OPTIONS ──────────────────────────────────────────────────
 
 DEFAULT_PROSE_MANIFESTO = REPO_ROOT / "prose" / "intent-manifesto.md"
+DEFAULT_PROSE_SPEC = REPO_ROOT / "prose" / "intent-spec-idf-sdlc-v1.7.0.md"
 
 
 def pytest_addoption(parser):
@@ -49,6 +50,11 @@ def pytest_addoption(parser):
         "--prose-manifesto",
         default=str(DEFAULT_PROSE_MANIFESTO),
         help="Path to the prose manifesto markdown file",
+    )
+    parser.addoption(
+        "--prose-spec",
+        default=str(DEFAULT_PROSE_SPEC),
+        help="Path to the prose specification markdown file",
     )
     parser.addoption(
         "--sdlc-ai-intent",
@@ -104,6 +110,19 @@ def prose_manifesto_text(prose_manifesto_path) -> str:
     if not prose_manifesto_path.exists():
         pytest.skip(f"Prose manifesto not found: {prose_manifesto_path}")
     return prose_manifesto_path.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="session")
+def prose_spec_path(request) -> Path:
+    return Path(request.config.getoption("--prose-spec"))
+
+
+@pytest.fixture(scope="session")
+def prose_spec_text(prose_spec_path) -> str:
+    """Raw text of the prose spec for drift checks."""
+    if not prose_spec_path.exists():
+        pytest.skip(f"Prose spec not found: {prose_spec_path}")
+    return prose_spec_path.read_text(encoding="utf-8")
 
 
 # ── DOMAIN FIXTURES ─────────────────────────────────────────────
@@ -203,6 +222,7 @@ def pytest_configure(config):
         "hypothesis: domain-invariance hypothesis tests",
         "bridge: criteria-to-root bridge tests",
         "criteria_self: criteria intent self-conformance tests",
+        "spec_drift: prose spec drift from canonical YAML/Zod/Lean",
     ]:
         config.addinivalue_line("markers", marker)
 
