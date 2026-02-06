@@ -123,7 +123,7 @@ inductive Tier where
 deriving DecidableEq, Repr
 
 inductive AchievedCoverage where
-  | none | minimal | partial | substantial | full
+  | «none» | minimal | «partial» | substantial | full
 deriving DecidableEq, Repr, Inhabited
 
 inductive TensionStatus where
@@ -180,7 +180,7 @@ theorem enum_closure_OriginType :
 
 theorem enum_closure_AchievedCoverage :
     ∀ (c : AchievedCoverage),
-      c = .none ∨ c = .minimal ∨ c = .partial ∨
+      c = .«none» ∨ c = .minimal ∨ c = .«partial» ∨
       c = .substantial ∨ c = .full := by
   intro c; cases c <;> simp
 
@@ -446,7 +446,7 @@ def Transition.hasSummary (t : Transition) : Prop :=
 def chainContiguous : List Transition → Prop
   | [] => True
   | [_] => True
-  | t₁ :: t₂ :: rest => t₁.to_version == t₂.from_version ∧ chainContiguous (t₂ :: rest)
+  | t₁ :: t₂ :: rest => t₁.to_version = t₂.from_version ∧ chainContiguous (t₂ :: rest)
 
 def chainStartsAt (log : List Transition) (v : SemVer) : Prop :=
   match log with
@@ -520,16 +520,7 @@ theorem v161_log_ends : chainEndsAt v161_log (.v 1 6 1) := by
 
 theorem v161_log_contiguous : chainContiguous v161_log := by
   unfold chainContiguous v161_log
-  simp [BEq.beq, SemVer.v]
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  trivial
+  refine ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, trivial⟩
 
 theorem v161_log_all_summaries : ∀ t ∈ v161_log, t.hasSummary := by
   intro t ht
@@ -721,7 +712,12 @@ def root_fc_list : List FalsifiableClaim := [
     claim := "The Red/Green/Refactor cycle is operationally isomorphic to TDD"
     falsified_when := "The cycle fails to constrain work in the way TDD constrains code"
     status := .supported_in_theory
-    evidence := "Cycle defined with explicit constraints; not tested in practice" }
+    evidence := "Cycle defined with explicit constraints; not tested in practice" },
+  { id := "FC-08"
+    claim := "Tensions between intents are made explicit and their resolution is tracked"
+    falsified_when := "Conflicting intents coexist without an explicit resolution strategy, resolution owner, or staleness threshold"
+    status := .supported
+    evidence := "Schema defines tensions with required fields: resolution_strategy, resolution_owner, staleness_threshold_days. Root intent declares five tensions (T-01 through T-05) with explicit strategies" }
 ]
 
 /-- The root intent's provides list as concrete data -/
@@ -810,7 +806,7 @@ def root_meta_intent : Intent := {
   operational_cycle := some root_operational_cycle
   design_stance := some "Domain-specific adaptation is achieved through instantiation, not generalization"
   serves := []
-  retirement_conditions := some "The framework is falsified (FC-01 through FC-07 fail) or superseded by a model that satisfies the same declares with fewer structural commitments"
+  retirement_conditions := some "The framework is falsified (FC-01 through FC-08 fail) or superseded by a model that satisfies the same declares with fewer structural commitments"
 }
 
 /-- Root intent is well-formed (aspirational with current_reality) -/
@@ -903,11 +899,7 @@ theorem root_log_ends : chainEndsAt root_intent_log (.v 1 3 0) := by
 
 theorem root_log_contiguous : chainContiguous root_intent_log := by
   unfold chainContiguous root_intent_log
-  simp [BEq.beq, SemVer.v]
-  constructor · rfl
-  constructor · rfl
-  constructor · rfl
-  trivial
+  refine ⟨rfl, rfl, rfl, trivial⟩
 
 theorem root_log_all_summaries : ∀ t ∈ root_intent_log, t.hasSummary := by
   intro t ht
@@ -988,7 +980,7 @@ def root_fc_ids : List String :=
 
 /-- All FC IDs as expected -/
 theorem root_fc_ids_value :
-    root_fc_ids = ["FC-01", "FC-02", "FC-03", "FC-04", "FC-05", "FC-06", "FC-07"] := by
+    root_fc_ids = ["FC-01", "FC-02", "FC-03", "FC-04", "FC-05", "FC-06", "FC-07", "FC-08"] := by
   simp [root_fc_ids, root_fc_list]
 
 /-- A provides item's tested_by refs all resolve -/
@@ -1017,9 +1009,7 @@ theorem provides_c_resolves :
 theorem provides_d_resolves :
     refsResolve { id := "provides-d", description := "A tension model that makes conflicts between intents explicit, owned, and resolvable", tested_by := ["FC-08"] } root_fc_ids := by
   unfold refsResolve
-  intro ref
-  unfold root_fc_ids
-  simp [root_fc_list]
+  simp [root_fc_ids, root_fc_list]
 
 /-- provides-e: tested_by [FC-03, FC-05] — both exist -/
 theorem provides_e_resolves :
@@ -1040,17 +1030,7 @@ theorem all_nonempty_provides_resolve :
   intro item hitem hne
   unfold refsResolve
   simp [root_provides_list] at hitem
-  rcases hitem with rfl | rfl | rfl | rfl | rfl | rfl
-  · simp [root_fc_ids, root_fc_list]
-  · simp [root_fc_ids, root_fc_list]
-  · simp [root_fc_ids, root_fc_list]
-  · intro ref href
-    simp [root_fc_ids] at href
-    rcases href with rfl
-    simp [root_fc_list]
-  · intro ref href; simp [root_fc_ids, root_fc_list] at href
-    rcases href with rfl | rfl <;> simp [root_fc_ids, root_fc_list]
-  · simp [root_fc_ids, root_fc_list]
+  rcases hitem with rfl | rfl | rfl | rfl | rfl | rfl <;> simp [root_fc_ids, root_fc_list]
 
 -- ════════════════════════════════════════════════════════════════════
 -- §16. FALSIFIABLE CLAIM GOVERNANCE
@@ -1067,7 +1047,7 @@ theorem root_intent_no_falsified :
   unfold noFalsifiedClaims
   intro fc hfc
   simp [root_fc_list] at hfc
-  rcases hfc with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp [FalsifiableClaimStatus]
+  rcases hfc with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp
 
 /-- Governance predicate: if tdd_isomorphism = structural,
     FC-07 must have status = supported.
@@ -1169,9 +1149,10 @@ theorem root_meta_intent_governance_compliant :
          FC-07 status is supported_in_theory (not supported)
          Isomorphism consistency: claimed does not require supported FC-07
   PROV   All provides items with non-empty tested_by have valid FC refs
-         provides-d is the only untested deliverable (known gap)
+         provides-d tested by FC-08 (tension model)
          Cross-reference resolution: provides-a→FC-01, provides-b→FC-06,
-         provides-c→FC-02, provides-e→{FC-03,FC-05}, provides-f→FC-07
+         provides-c→FC-02, provides-d→FC-08, provides-e→{FC-03,FC-05},
+         provides-f→FC-07
   GOV    Governance compliance: root intent is well-formed AND has no
          falsified claims AND isomorphism claim is consistent
 
