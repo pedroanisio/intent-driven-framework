@@ -33,7 +33,9 @@ intent:
   id: string              # stable, unique, never changes
   version: semver          # MAJOR.MINOR.PATCH
   declares: string         # what this intent asserts — natural language, precise
-  scope: string[]          # what parts of the system this intent binds
+  scope:                   # what parts of the system this intent binds
+    primary: string[]      # explicit scope entries (at least one required)
+    implicit: string[]     # optional — derived or inherited scope
   priority: enum           # critical | high | medium | low
   status: enum             # proposed | active | evolving | superseded | residual | retracted
 
@@ -42,15 +44,25 @@ intent:
                            # achieved: what the system currently intends (descriptive)
                            # aspirational: what we want the system to intend (directional)
 
+  # coverage — top-level, not nested under current_reality
+  achieved_coverage: enum  # none | minimal | partial | substantial | full
+
   # for aspirational intents — the gap between now and the goal
   current_reality:
-    assessed: datetime     # when this assessment was last made
-    description: string    # honest description of current state
-    achieved_coverage: enum  # none | minimal | partial | substantial | full
-    gaps: []               # specific areas where current state falls short
+    state: string          # required, non-empty description of current state
+    assessed: datetime     # or last_assessed — at least one date required
+    last_assessed: datetime
+    status: string         # optional status summary
+    remaining_work:        # string or structured list of work items
+      - id: string
+        description: string
+        blocks: string     # optional — what this blocks
+        priority: enum     # optional
+    gap_assessment: string # optional overall gap description
+    gap: string            # optional short gap summary
 
   # relational
-  tensions: intent_ref[]   # intents this is in active tension with
+  tensions: Tension[]      # structured tension objects (see Tension schema below)
   serves: intent_ref[]     # parent intents this supports
   supersedes: intent_ref[] # intents this replaced
 
@@ -113,13 +125,9 @@ transition:
   change_type: enum        # clarification | correction | extension
                            # | reclassification | breaking | deprecation
   reason: string
-  forcing_function: enum   # incident | requirement | scaling | organizational
-                           # | regulatory | technical_evolution
-
-  residual:
-    code_paths: string[]   # code still serving the old version
-    risk: string           # what happens if residual code isn't updated
-    migration_intent: string  # what "done" looks like for cleanup
+  forcing_function: string # optional — freeform description of forcing function
+  what_changed: string[]   # optional — list of specific changes made
+  residue: string          # optional — description of leftover state or debt
 
   # extension surface — plugins can enrich transitions
   ext:

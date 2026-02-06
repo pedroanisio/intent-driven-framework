@@ -281,17 +281,30 @@ class TestSpecStructuralDrift:
     @pytest.mark.spec_drift
     @pytest.mark.core
     def test_scope_not_flat_string_array(self, prose_spec_text):
-        """Scope must not be shown as a flat string[].
+        """Scope on the intent schema must not be shown as a flat string[].
 
         Zod: Scope = z.object({ primary: string[], implicit?: string[] })
-        Prose currently shows: scope: string[]"""
+        Prose currently shows: scope: string[]
+
+        Only checks the Full Intent Schema block (between "### The Full
+        Intent Schema" and "### Transition"), not other entities like
+        Decision which have their own scope field."""
+        # Extract the intent schema block
+        m = re.search(
+            r"### The Full Intent Schema.*?### Transition",
+            prose_spec_text,
+            re.DOTALL,
+        )
+        if not m:
+            pytest.fail("Could not find 'Full Intent Schema' section")
+        intent_block = m.group()
         has_flat_scope = bool(re.search(
             r"scope:\s*string\[\]",
-            prose_spec_text,
+            intent_block,
         ))
         assert not has_flat_scope, (
-            "RED: prose spec defines scope as 'string[]' (flat array). "
-            "Canonical Zod schema defines scope as "
+            "RED: prose spec intent schema defines scope as 'string[]' "
+            "(flat array). Canonical Zod schema defines scope as "
             "{ primary: string[], implicit?: string[] }"
         )
 
@@ -435,4 +448,192 @@ class TestSpecStructuralDrift:
         assert has_what_changed, (
             "RED: prose spec transition schema missing 'what_changed'. "
             "Canonical Zod includes what_changed: string[] (optional)."
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  EXTENSION COVERAGE — prose spec entities beyond Zod scope
+# ═══════════════════════════════════════════════════════════════════
+
+class TestSpecExtensionEntities:
+    """The prose spec defines entities that are valid extensions —
+    not yet modeled in schema.js but intentionally part of the
+    specification. These tests protect them from accidental removal."""
+
+    # ── Decision (ADR) ────────────────────────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_decision_entity_exists(self, prose_spec_text):
+        """Prose spec must define the Decision (ADR) entity."""
+        assert "decision:" in prose_spec_text, (
+            "Prose spec missing Decision (ADR) entity schema"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_decision_has_serves_intent(self, prose_spec_text):
+        """Decision must link to the intent it serves."""
+        assert "serves_intent:" in prose_spec_text, (
+            "Decision schema missing 'serves_intent' — the key "
+            "relationship linking decisions to intents"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_decision_has_triggers_transition(self, prose_spec_text):
+        """Decision must support triggering intent transitions."""
+        assert "triggers_transition:" in prose_spec_text, (
+            "Decision schema missing 'triggers_transition' — "
+            "the bridge from decision to intent evolution"
+        )
+
+    # ── Tension (standalone) ──────────────────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_tension_standalone_entity_exists(self, prose_spec_text):
+        """Prose spec must define the standalone Tension entity
+        with resolution history (richer than Zod inline Tension)."""
+        assert "current_resolution:" in prose_spec_text, (
+            "Prose spec missing standalone Tension entity with "
+            "current_resolution block"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_tension_has_resolution_history(self, prose_spec_text):
+        """Standalone Tension must track resolution evolution."""
+        assert "resolution_history:" in prose_spec_text, (
+            "Tension schema missing 'resolution_history' — "
+            "how the balance has shifted over time"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_tension_has_cross_discipline(self, prose_spec_text):
+        """Standalone Tension must support cross-discipline flag."""
+        assert "cross_discipline:" in prose_spec_text, (
+            "Tension schema missing 'cross_discipline' — "
+            "true when intents originate from different disciplines"
+        )
+
+    # ── Origin Record ─────────────────────────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_origin_record_entity_exists(self, prose_spec_text):
+        """Prose spec must define the standalone Origin Record entity."""
+        assert "origin_record:" in prose_spec_text, (
+            "Prose spec missing Origin Record entity — "
+            "the reverse index from external events to intents"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_origin_record_has_reverse_index(self, prose_spec_text):
+        """Origin Record must provide reverse lookup fields."""
+        has_generated = "generated_intents:" in prose_spec_text
+        has_constrained = "constrained_intents:" in prose_spec_text
+        assert has_generated and has_constrained, (
+            "Origin Record missing reverse index fields: "
+            "generated_intents and/or constrained_intents"
+        )
+
+    # ── Manifest ──────────────────────────────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_manifest_entity_exists(self, prose_spec_text):
+        """Prose spec must define the repo Manifest entity."""
+        assert "boundary_type:" in prose_spec_text, (
+            "Prose spec missing Manifest entity with boundary_type"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_manifest_has_cross_repo_deps(self, prose_spec_text):
+        """Manifest must support cross-repo intent dependencies."""
+        assert "depends_on_intents:" in prose_spec_text, (
+            "Manifest missing 'depends_on_intents' — "
+            "the cross-repo purpose contract"
+        )
+
+    # ── Repository Structure (Section II) ─────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_repo_structure_section_exists(self, prose_spec_text):
+        """Prose spec must document the _repo/ directory layout."""
+        has_section = "## II. The Repository Structure" in prose_spec_text
+        has_tree = "_repo/" in prose_spec_text
+        assert has_section and has_tree, (
+            "Prose spec missing Section II: Repository Structure"
+        )
+
+    # ── Extension Surface (Section III) ───────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_extension_surface_section_exists(self, prose_spec_text):
+        """Prose spec must document the plugin extension surface."""
+        assert "## III. The Extension Surface" in prose_spec_text, (
+            "Prose spec missing Section III: Extension Surface"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_extension_four_mechanisms(self, prose_spec_text):
+        """Extension surface must describe all four plugin mechanisms."""
+        has_fields = "### Extension Fields" in prose_spec_text
+        has_validators = "### Validation Plugins" in prose_spec_text
+        has_relations = "### Relation Type Plugins" in prose_spec_text
+        has_hooks = "### Lifecycle Hooks" in prose_spec_text
+        missing = []
+        if not has_fields:
+            missing.append("Extension Fields")
+        if not has_validators:
+            missing.append("Validation Plugins")
+        if not has_relations:
+            missing.append("Relation Type Plugins")
+        if not has_hooks:
+            missing.append("Lifecycle Hooks")
+        assert not missing, (
+            f"Extension Surface missing plugin mechanisms: "
+            f"{', '.join(missing)}"
+        )
+
+    # ── Tooling Surface (Section IV) ──────────────────────────────
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_tooling_surface_section_exists(self, prose_spec_text):
+        """Prose spec must document the tooling contracts."""
+        assert "## IV. Tooling Surface" in prose_spec_text, (
+            "Prose spec missing Section IV: Tooling Surface"
+        )
+
+    @pytest.mark.spec_drift
+    @pytest.mark.core
+    def test_tooling_contracts_coverage(self, prose_spec_text):
+        """Tooling surface must describe all five contracts."""
+        has_ci = "### CI Validation" in prose_spec_text
+        has_scope = "### Scope Lookup" in prose_spec_text
+        has_lifecycle = "### Lifecycle Event Propagation" in prose_spec_text
+        has_staleness = "### Tension Resolution Staleness" in prose_spec_text
+        has_deprecation = "### Deprecation Ceremonies" in prose_spec_text
+        missing = []
+        if not has_ci:
+            missing.append("CI Validation")
+        if not has_scope:
+            missing.append("Scope Lookup")
+        if not has_lifecycle:
+            missing.append("Lifecycle Event Propagation")
+        if not has_staleness:
+            missing.append("Tension Resolution Staleness")
+        if not has_deprecation:
+            missing.append("Deprecation Ceremonies")
+        assert not missing, (
+            f"Tooling Surface missing contracts: "
+            f"{', '.join(missing)}"
         )

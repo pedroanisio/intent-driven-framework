@@ -54,7 +54,10 @@ The isomorphism is a design commitment, not yet a proven property. See FC-07 in 
 .
 ├── prose/
 │   ├── intent-manifesto.md          # The philosophy — why this exists
-│   └── intent-spec-core.md          # The universal data model (planned; referenced but not yet present)
+│   ├── intent-spec-core.md          # The universal data model (planned; referenced but not yet present)
+│   ├── intent-spec-idf-sdlc-v1.7.0.md  # SDLC domain spec
+│   └── tools/
+│       └── idf-sdlc-v1.7.0-init.py  # SDLC repo initializer
 ├── criteria/
 │   ├── intent-driven-framework-definition.yml  # Root intent declaration
 │   └── intent-idf-sdlc-v1.7.0.yml              # SDLC domain intent

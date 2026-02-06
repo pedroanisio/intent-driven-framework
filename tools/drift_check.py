@@ -27,6 +27,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 IDF_PATH = ROOT / "criteria" / "intent-driven-framework-definition.yml"
+SDLC_INTENT_PATH = ROOT / "criteria" / "intent-idf-sdlc-v1.7.0.yml"
+SDLC_INIT_PATH = ROOT / "prose" / "tools" / "idf-sdlc-v1.7.0-init.py"
 LEAN_PATH = ROOT / "lean" / "IntentDrivenFramework.lean"
 SCHEMA_PATH = ROOT / "tools" / "schema.js"
 README_PATH = ROOT / "README.md"
@@ -72,6 +74,21 @@ def parse_idf_version(text: str) -> str | None:
 
 def parse_idf_schema_version(text: str) -> str | None:
     m = re.search(r"^\s+schema_version:\s+(\d+\.\d+\.\d+)\s*$", text, re.MULTILINE)
+    return m.group(1) if m else None
+
+
+def parse_init_constant(text: str, name: str) -> str | None:
+    m = re.search(rf"^{name}\s*=\s*\"(\d+\.\d+\.\d+)\"\s*$", text, re.MULTILINE)
+    return m.group(1) if m else None
+
+
+def parse_init_doc_version(text: str) -> str | None:
+    m = re.search(r"Intent Driven Framework v(\d+\.\d+\.\d+)", text)
+    return m.group(1) if m else None
+
+
+def parse_init_sdlc_version(text: str) -> str | None:
+    m = re.search(r"IDF SDLC v(\d+\.\d+\.\d+)", text)
     return m.group(1) if m else None
 
 
@@ -317,6 +334,21 @@ def check_readme_fc_count(drift: Drift, idf_fcs: dict, readme_text: str):
     info(f"README FC count word: '{word}', IDF count: {len(idf_fcs)}")
 
 
+def check_sdlc_init_versions(drift: Drift, sdlc_text: str, init_text: str):
+    sdlc_version = parse_idf_version(sdlc_text)
+    sdlc_schema_version = parse_idf_schema_version(sdlc_text)
+    init_framework = parse_init_constant(init_text, "FRAMEWORK_VERSION")
+    init_schema = parse_init_constant(init_text, "SCHEMA_VERSION")
+    init_sdlc_version = parse_init_sdlc_version(init_text)
+
+    if sdlc_version and init_framework and sdlc_version != init_framework:
+        drift.add("SDLC Init", f"FRAMEWORK_VERSION {init_framework} != criteria version {sdlc_version}")
+    if sdlc_schema_version and init_schema and sdlc_schema_version != init_schema:
+        drift.add("SDLC Init", f"SCHEMA_VERSION {init_schema} != criteria schema_version {sdlc_schema_version}")
+    if init_sdlc_version and sdlc_version and init_sdlc_version != sdlc_version:
+        drift.add("SDLC Init", f"docstring SDLC v{init_sdlc_version} != criteria version {sdlc_version}")
+
+
 # ── Main ─────────────────────────────────────────────────────────
 
 def main():
@@ -326,6 +358,7 @@ def main():
     missing = []
     for path, label in [
         (IDF_PATH, "IDF"), (LEAN_PATH, "Lean"),
+        (SDLC_INTENT_PATH, "SDLC intent"), (SDLC_INIT_PATH, "SDLC init"),
         (SCHEMA_PATH, "schema.js"), (README_PATH, "README"),
     ]:
         if not path.exists():
@@ -337,6 +370,8 @@ def main():
         sys.exit(2)
 
     idf_text = IDF_PATH.read_text()
+    sdlc_text = SDLC_INTENT_PATH.read_text()
+    sdlc_init_text = SDLC_INIT_PATH.read_text()
     lean_text = LEAN_PATH.read_text()
     zod_text = SCHEMA_PATH.read_text()
     readme_text = README_PATH.read_text()
@@ -372,6 +407,10 @@ def main():
     # ── 6. README FC count ───────────────────────────────────────
     print("Checking README FC count...")
     check_readme_fc_count(drift, idf_fcs, readme_text)
+
+    # ── 7. SDLC init script versions ─────────────────────────────
+    print("Checking SDLC init script versions...")
+    check_sdlc_init_versions(drift, sdlc_text, sdlc_init_text)
 
     # ── Report ───────────────────────────────────────────────────
     print()
