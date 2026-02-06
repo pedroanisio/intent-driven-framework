@@ -23,9 +23,10 @@ intent:
   # to provide it is detectable.
   # ─────────────────────────────────────────────────────────────────
 
-  declares: >
-    The Intent Driven Framework is a purpose governance model. It
-    treats intent as a first-class entity — structured, versioned,
+declares: >
+    This manifesto intends to be a self-contained declaration of
+    the Intent Driven Framework — a purpose governance model that
+    treats intent as a first-class entity: structured, versioned,
     and verifiable — across any domain where decisions serve goals
     that degrade, drift, or become invisible over time. The domain
     is a parameter: software, policy, strategy, regulation, or the
