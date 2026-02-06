@@ -18,5 +18,6 @@ markers = [
     "hypothesis: domain-invariance hypothesis tests",
     "bridge: criteria-to-root bridge tests",
     "criteria_self: criteria intent self-conformance tests",
+    "spec_drift: prose spec drift from canonical YAML/Zod/Lean",
 ]
 addopts = "-v --tb=short"

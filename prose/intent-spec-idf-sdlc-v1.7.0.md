@@ -34,7 +34,7 @@ intent:
   version: semver          # MAJOR.MINOR.PATCH
   declares: string         # what this intent asserts — natural language, precise
   scope: string[]          # what parts of the system this intent binds
-  priority: enum           # critical | high | standard | aspirational
+  priority: enum           # critical | high | medium | low
   status: enum             # proposed | active | evolving | superseded | residual | retracted
 
   # type — the fundamental distinction
@@ -56,11 +56,12 @@ intent:
 
   # provenance
   origin:
-    type: enum             # product_requirement | engineering | incident
+    type: enum             # engineering | product | incident | discovery
                            # | regulatory | organizational
                            # | devops | ux | data | sre | security
     ref: string            # external reference
     relationship: enum     # derived_from | motivated_by | constrained_by
+                           # | triggered_by | discovered_in
   co_origins: origin[]     # additional provenance when multiple forces converge
 
   # ownership
@@ -73,6 +74,25 @@ intent:
 
   # metadata
   created: datetime
+
+  # schema v0.2.0+ additions
+  falsifiable_claims: []   # claims that can be tested and potentially falsified
+  failure_modes: []        # named ways the intent can be misapplied
+  retirement_conditions: string  # when this intent should be retired
+  design_stance: string    # architectural philosophy (schema v0.4.0)
+
+  # schema v0.3.0+ additions
+  operational_cycle:        # Red/Green/Refactor cycle definition
+    name: string
+    tdd_isomorphism: enum  # claimed | structural | analogical_only
+    phases: []             # ordered: red, green, refactor
+    constraints: []        # OC-01 through OC-04
+
+  # schema v0.4.0+ additions
+  provides:                # what the intent delivers, with FC cross-references
+    - id: string
+      description: string
+      tested_by: string[]  # FC or CC IDs that verify this deliverable
 
   # extension surface — namespaced, optional, domain-specific
   ext:
@@ -90,7 +110,8 @@ transition:
   date: datetime
   author: string
 
-  change_type: enum        # clarification | extension | breaking | deprecation
+  change_type: enum        # clarification | correction | extension
+                           # | reclassification | breaking | deprecation
   reason: string
   forcing_function: enum   # incident | requirement | scaling | organizational
                            # | regulatory | technical_evolution
@@ -185,7 +206,7 @@ These are two views of the same relationship. The inline `origin.ref` on an inte
 ```yaml
 origin_record:
   id: string
-  type: enum               # product_requirement | engineering | incident
+  type: enum               # engineering | product | incident | discovery
                            # | regulatory | organizational
                            # | devops | ux | data | sre | security
   external_ref: string         # identifier in the external system (e.g., JIRA-1234)
