@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --accent: 220 90% 56%;
+  --accent-soft: 220 80% 96%;
+  --success: 152 60% 42%;
+  --warning: 38 92% 50%;
+  --danger: 0 72% 51%;
+  --surface: 0 0% 100%;
+  --surface-raised: 220 14% 98%;
+  --border: 220 13% 91%;
+  --text: 220 14% 10%;
+  --text-muted: 220 8% 46%;
+  --radius: 10px;
+}
+
+body {
+  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: hsl(220 14% 96%);
+  color: hsl(var(--text));
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+* { scrollbar-width: thin; scrollbar-color: hsl(220 10% 80%) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(220 10% 80%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(220 10% 68%); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+.animate-slide-up { animation: slideUp 0.25s ease-out; }
+.animate-scale-in { animation: scaleIn 0.2s ease-out; }
+.skeleton {
+  background: linear-gradient(90deg, hsl(220 14% 93%) 25%, hsl(220 14% 97%) 50%, hsl(220 14% 93%) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+.kind-tab {
+  transition: all 0.15s ease;
+}
+.kind-tab:hover {
+  background: hsl(220 14% 95%);
+}
+.kind-tab[data-active="true"] {
+  background: hsl(var(--accent));
+  color: white;
+  font-weight: 500;
+}
+
+textarea:focus, select:focus, input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--accent) / 0.25);
+  border-color: hsl(var(--accent));
+}

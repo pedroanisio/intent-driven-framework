@@ -1,0 +1,35 @@
+# Aspirational Intent Schema
+# Schema version: 0.1.0
+#
+# An aspirational intent includes a current_reality block describing
+# the gap between the declared intent and the actual state.
+# Transition from aspirational → achieved is defined by CC-08.
+
+aspirational_intent:
+  required_fields:
+    - id                  # string, unique identifier
+    - version             # semver string
+    - schema_version      # semver string
+    - intent_type         # must be "aspirational"
+    - declares            # free-text, must pass CC-19 quality test
+    - current_reality     # block: state, status, remaining_work, last_assessed
+    - scope               # block: primary (list), implicit (list)
+    - priority            # enum: critical | high | medium | low
+    - status              # enum: proposed | active | evolving | superseded | residual | retracted
+    - confidence          # enum: high | medium | low
+    - owner               # string or list
+    - origin              # block: type, ref, relationship
+    - transition_log      # list of transition entries
+
+  optional_fields:
+    - serves              # list of intent IDs
+    - dependencies        # list of intent IDs
+    - achieved_coverage   # enum: none | minimal | partial | substantial | full
+    - ext                 # namespaced extensions (CC-12)
+
+  current_reality:
+    required_fields:
+      - state             # free-text description
+      - status            # free-text summary
+      - remaining_work    # free-text description
+      - last_assessed     # ISO date string

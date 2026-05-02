@@ -1,0 +1,26 @@
+# Tension Declaration
+# Schema version: 0.1.0
+#
+# A tension represents a known conflict or trade-off between two intents.
+# See CC-08a, CC-08b, CC-08c for conflict resolution criteria.
+
+tension:
+  id: tension-XXXX
+  between:
+    - intent_id: ""       # first intent
+      version: "1.0.0"
+    - intent_id: ""       # second intent
+      version: "1.0.0"
+
+  description: >
+    TODO: Describe the conflict or trade-off.
+
+  resolution:
+    strategy: ""          # how the tension is resolved
+    resolution_owner: ""  # who decides
+    applies_to:
+      - "1.0.0"           # semver of intent A at resolution time
+      - "1.0.0"           # semver of intent B at resolution time
+
+  status: proposed        # proposed | active | superseded | residual
+  created: "2026-02-06"

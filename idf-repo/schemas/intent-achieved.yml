@@ -1,0 +1,27 @@
+# Achieved Intent Schema
+# Schema version: 0.1.0
+#
+# An achieved intent does NOT require a current_reality block.
+# It represents a commitment that has been fully met and verified.
+
+achieved_intent:
+  required_fields:
+    - id
+    - version
+    - schema_version
+    - intent_type         # must be "achieved"
+    - declares
+    - scope
+    - priority
+    - status
+    - confidence
+    - owner
+    - origin
+    - transition_log
+
+  optional_fields:
+    - serves
+    - dependencies
+    - achieved_coverage   # should be "full" for achieved intents
+    - current_reality     # optional — may be retained for historical context
+    - ext                 # namespaced extensions (CC-12)

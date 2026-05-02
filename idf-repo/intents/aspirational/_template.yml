@@ -1,0 +1,45 @@
+# Intent Declaration — intent-XXXX
+# Schema version: 0.1.0
+# Framework version: 1.7.0
+#
+# Canonical enums are defined in schemas/enums.yml
+# This file conforms to schemas/intent-aspirational.yml
+
+intent:
+  id: intent-XXXX
+  version: 1.0.0
+  schema_version: 0.1.0
+  intent_type: aspirational
+
+  declares: >
+    TODO: A falsifiable statement of what this intent commits to.
+    Must satisfy CC-19: if no code change could violate it, it is not an intent.
+
+  current_reality:
+    state: >
+      TODO: Describe the current state of reality relative to this intent.
+    status: >
+      TODO: Summarize verification status.
+    remaining_work: >
+      TODO: Describe what remains to be done.
+    last_assessed: "2026-02-06"
+
+  scope:
+    primary: []        # TODO: list governed files/paths
+    implicit: []       # TODO: list implicitly governed paths
+
+  priority: medium        # critical | high | medium | low
+  status: proposed        # proposed | active | evolving | superseded | residual | retracted
+  confidence: medium      # high | medium | low
+
+  owner: "TODO"          # team or individual
+
+  origin:
+    type: engineering     # see schemas/enums.yml for full list
+    ref: ""               # conversation, ticket, postmortem, etc.
+    relationship: derived_from  # derived_from | motivated_by | constrained_by | triggered_by | discovered_in
+
+  serves: []              # list of intent IDs this intent serves
+  dependencies: []        # list of intent IDs this intent depends on
+
+  transition_log: []
